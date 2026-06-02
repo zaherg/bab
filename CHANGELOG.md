@@ -11,10 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Update README, getting-started, plugin-authoring, and tool docs for v0.1.3.
+- Document debug stack trace exposure.
 
 ### Changed
 
 - Rename BAB_OPENCODE_CAPTURE_DIR to OPENCODE_CAPTURE_DIR to avoid BAB_* env stripping.
+
+### Fixed
+
+- Fix inaccuracies and document report persistence.
 
 ### Other
 
@@ -24,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - S9 — adapter hash pinning for install integrity.
 - S11-S14 — process-runner hardening.
 - S15-S17 — skills TOCTOU, log secret redaction, env quote edge case.
+- Validate custom provider URLs.
+- Require installed adapter metadata.
+- Update files.
 
 ## [0.1.3-20260326] - 2026-03-26
 
