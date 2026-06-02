@@ -224,9 +224,9 @@ All `BAB_*` variables are validated through a Zod schema on startup. Invalid val
 | `BAB_PERSIST` | boolean | Set to `false` to disable report persistence (default: `true`) |
 | `BAB_PERSIST_TOOLS` | comma-separated | Only persist reports for these tools |
 | `BAB_DISABLED_PERSIST_TOOLS` | comma-separated | Disable persistence for these tools |
-| `BAB_CLI_TIMEOUT_MS` | integer | Override delegate CLI timeout (default: 3 hours) |
+| `BAB_CLI_TIMEOUT_MS` | integer | Override delegate CLI timeout (default: 5 minutes) |
 | `BAB_MAX_CONCURRENT_PROCESSES` | integer | Max concurrent delegate processes (default: 5) |
-| `BAB_LOG_LEVEL` | string | Logging level: `debug`, `info`, `warn`, `error` (default: `info`) |
+| `BAB_LOG_LEVEL` | string | Logging level: `debug`, `info`, `warn`, `error` (default: `info`). `debug` can include stack traces in MCP tool error responses; do not enable it with untrusted MCP clients. |
 
 Example:
 
@@ -262,7 +262,7 @@ Log files are stored in `~/.config/bab/logs/`:
 | `error.log` | Warnings and errors only — quick debugging |
 | `<pluginId>.log` | Per-plugin delegate I/O (e.g. `copilot.log`, `opencode.log`) |
 
-Set `BAB_LOG_LEVEL=debug` for verbose output including stack traces in error responses.
+Set `BAB_LOG_LEVEL=debug` only for local troubleshooting. Debug mode adds stack traces to MCP tool error responses, so the connected MCP client can see file paths and stack frames.
 
 ### Security
 
@@ -271,7 +271,7 @@ Delegate subprocesses receive a sanitized environment:
 - **API keys stripped**: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `GITHUB_TOKEN`, `GH_TOKEN`
 - **Internal vars stripped**: All `BAB_*`, `CLAUDE_*`, and `CLAUDECODE*` prefixed variables
 - **Runtime injection vars stripped**: `LD_PRELOAD`, `NODE_OPTIONS`, `DYLD_INSERT_LIBRARIES`, etc.
-- **Stack traces**: Never included in tool error responses (debug mode only)
+- **Stack traces**: Included in MCP tool error responses only when `BAB_LOG_LEVEL=debug`; leave debug mode off for untrusted MCP clients
 - **Working directory**: Validated to be within project root, home, or tmp
 
 Plugins that need an API key must declare it in their own `env` file (`~/.config/bab/plugins/<id>/env`).

@@ -68,9 +68,9 @@ Set these in `~/.config/bab/env` or in your MCP client config:
 | `BAB_PERSIST` | boolean | Set to `false` to disable report persistence |
 | `BAB_PERSIST_TOOLS` | comma-separated | Only persist reports for these tools |
 | `BAB_DISABLED_PERSIST_TOOLS` | comma-separated | Disable persistence for these tools |
-| `BAB_CLI_TIMEOUT_MS` | integer | Override delegate CLI timeout (default: 3 hours) |
+| `BAB_CLI_TIMEOUT_MS` | integer | Override delegate CLI timeout (default: 5 minutes) |
 | `BAB_MAX_CONCURRENT_PROCESSES` | integer | Max concurrent delegate processes (default: 5) |
-| `BAB_LOG_LEVEL` | string | `debug`, `info`, `warn`, or `error` (default: `info`) |
+| `BAB_LOG_LEVEL` | string | `debug`, `info`, `warn`, or `error` (default: `info`). `debug` can include stack traces in MCP tool error responses; use it only with trusted local clients. |
 
 ### Logging
 
@@ -79,6 +79,8 @@ Log files are stored in `~/.config/bab/logs/`:
 - `mcp.log` — all server events
 - `error.log` — warnings and errors only
 - `<pluginId>.log` — per-plugin delegate I/O
+
+`BAB_LOG_LEVEL=debug` is intended for local troubleshooting. It may expose stack traces, file paths, and stack frames to the connected MCP client in tool error responses.
 
 ## Common Commands
 
