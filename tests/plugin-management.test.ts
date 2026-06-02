@@ -413,41 +413,44 @@ describe("plugin install command", () => {
     ).rejects.toThrow("Confirmation required in non-interactive mode");
   });
 
-  test("cleans up staging failures without partial installs", async () => {
-    const repositoryDirectory = await createGitRepository(
-      async (repoDirectory) => {
-        await writePlugin(repoDirectory, "claude");
-      },
-    );
-    const pluginsDir = await mkdtemp(
-      join(tmpdir(), "bab-install-stage-failure-"),
-    );
-    const originalMode = (await stat(pluginsDir)).mode;
+  test.skipIf(process.getuid?.() === 0)(
+    "cleans up staging failures without partial installs",
+    async () => {
+      const repositoryDirectory = await createGitRepository(
+        async (repoDirectory) => {
+          await writePlugin(repoDirectory, "claude");
+        },
+      );
+      const pluginsDir = await mkdtemp(
+        join(tmpdir(), "bab-install-stage-failure-"),
+      );
+      const originalMode = (await stat(pluginsDir)).mode;
 
-    await chmod(pluginsDir, 0o500);
+      await chmod(pluginsDir, 0o500);
 
-    try {
-      await expect(
-        installPluginsFromSource({
-          config: createConfig(pluginsDir),
-          isTty: false,
-          source: {
-            kind: "git_url",
-            original: "git@github.com:babmcp/plugins.git",
-            url: `file://${repositoryDirectory}`,
-          },
-          stderr: createCaptureStream([]),
-          stdin: createStdin(false),
-          stdout: createCaptureStream([]),
-          yes: true,
-        }),
-      ).rejects.toThrow();
-    } finally {
-      await chmod(pluginsDir, originalMode & 0o777);
-    }
+      try {
+        await expect(
+          installPluginsFromSource({
+            config: createConfig(pluginsDir),
+            isTty: false,
+            source: {
+              kind: "git_url",
+              original: "git@github.com:babmcp/plugins.git",
+              url: `file://${repositoryDirectory}`,
+            },
+            stderr: createCaptureStream([]),
+            stdin: createStdin(false),
+            stdout: createCaptureStream([]),
+            yes: true,
+          }),
+        ).rejects.toThrow();
+      } finally {
+        await chmod(pluginsDir, originalMode & 0o777);
+      }
 
-    expect(await readdir(pluginsDir)).toEqual([]);
-  });
+      expect(await readdir(pluginsDir)).toEqual([]);
+    },
+  );
 });
 
 describe("command wrappers", () => {

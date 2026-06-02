@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ── Constants ───────────────────────────────────────────────────────
-OWNER="zaherg"
+OWNER="babmcp"
 REPO="bab"
 GITHUB_API="https://api.github.com/repos/${OWNER}/${REPO}/releases/latest"
 DEFAULT_PREFIX="${HOME}/.local/bin"

@@ -8,7 +8,7 @@ Bab is currently in pre-release. Security fixes are applied to the latest versio
 
 Please **do not** open a public GitHub issue for security vulnerabilities.
 
-Report vulnerabilities by emailing the maintainer directly or opening a [GitHub Security Advisory](https://github.com/zaher/bab/security/advisories/new) (private disclosure).
+Report vulnerabilities by emailing the maintainer directly or opening a [GitHub Security Advisory](https://github.com/zaherg/bab/security/advisories/new) (private disclosure).
 
 Include:
 - Description of the vulnerability and its potential impact

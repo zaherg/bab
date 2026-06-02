@@ -209,8 +209,9 @@ export function createConsensusTool(context: ToolContext): RegisteredTool {
 
           // Collect results in input order
           for (let i = 0; i < settled.length; i++) {
-            const modelConfig = modelsToConsult[i]!;
-            const result = settled[i]!;
+            const modelConfig = modelsToConsult[i];
+            const result = settled[i];
+            if (!modelConfig || !result) continue;
 
             if (result.status === "fulfilled") {
               consultedResults.push(result.value);

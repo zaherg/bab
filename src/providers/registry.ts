@@ -3,7 +3,11 @@ import { createGoogleGenerativeAI, google } from "@ai-sdk/google";
 import { createOpenAI, openai } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter, openrouter } from "@openrouter/ai-sdk-provider";
-import { generateText as aiGenerateText, type LanguageModel } from "ai";
+import {
+  generateText as aiGenerateText,
+  type JSONValue,
+  type LanguageModel,
+} from "ai";
 
 import type { BabConfig } from "../config";
 import type { ModelInfo, ProviderId, Result, ToolError } from "../types";
@@ -300,10 +304,14 @@ export class ProviderRegistry {
         maxOutputTokens: options.maxOutputTokens,
         model,
         prompt,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ...(Object.keys(providerOptions).length > 0 && {
-          providerOptions: providerOptions as any,
-        }),
+        ...(Object.keys(providerOptions).length > 0
+          ? {
+              providerOptions: providerOptions as Record<
+                string,
+                Record<string, JSONValue>
+              >,
+            }
+          : {}),
         system: systemPrompt,
         temperature: options.temperature,
       });

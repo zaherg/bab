@@ -1,3 +1,4 @@
+import type { Stats } from "node:fs";
 import { realpathSync } from "node:fs";
 import { realpath, stat } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
@@ -238,7 +239,7 @@ export async function embedFiles(
       ? rawPath
       : resolve(process.cwd(), rawPath);
 
-    let stats;
+    let stats: Stats | undefined;
     let resolvedPath: string;
 
     try {

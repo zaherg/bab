@@ -26,6 +26,7 @@
     "dev": "bun run src/server.ts",
     "lint": "biome check .",
     "format": "biome format --write .",
+    "format:check": "biome format .",
     "prepack": "bun run build",
     "test": "bun test tests/*.test.ts --ignore 'tests/integration.test.ts' --ignore 'tests/opencode-plugin.e2e.test.ts'",
     "test:e2e": "bun test tests/integration.test.ts tests/opencode-plugin.e2e.test.ts --timeout 15000",
