@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.1.5-20260602] - 2026-06-02
+
+### Other
+
+- Run bundle-plugins before compile in release workflow.
+- Bump version to 0.1.5-20260602.
+
 ## [0.1.4-20260602] - 2026-06-02
 
 ### Added
