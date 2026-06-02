@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.1.4-20260602] - 2026-06-02
+
+### Added
+
+- Address deep review findings from 11 categories.
+
+### Changed
+
+- Repo move to zaherg/bab, prerelease flag, xattr fix.
+
+### Other
+
+- Embed bundled plugins in compiled binary.
+- Add important note.
+- Resolve issues #23-#29 — CI typecheck, biome config, lint errors, docs links, flaky test.
+- Scope biome lint/format to source dirs, format generated files before CI lint.
+- Bump version.
+
+### Removed
+
+- Drop Homebrew install instructions and tap notify job.
+
 ## [0.1.3-20260602] - 2026-06-02
 
 ### Added
