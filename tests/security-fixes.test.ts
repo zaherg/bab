@@ -549,6 +549,70 @@ describe("S18: custom provider URL validation", () => {
   });
 });
 
+describe("S19: installed plugin adapter metadata enforcement", () => {
+  async function writePlugin(directory: string): Promise<void> {
+    await mkdir(directory, { recursive: true });
+    await writeFile(
+      join(directory, "manifest.yaml"),
+      [
+        "id: adapter-metadata-test",
+        "name: Adapter Metadata Test",
+        "version: 1.0.0",
+        "command: echo",
+        "roles:",
+        "  - default",
+      ].join("\n"),
+    );
+    await writeFile(
+      join(directory, "adapter.ts"),
+      "export default { run: () => [] };\n",
+    );
+  }
+
+  test("rejects installed plugin adapters without install metadata", async () => {
+    const pluginDirectory = await mkdtemp(join(tmpdir(), "bab-s19-missing-"));
+    await writePlugin(pluginDirectory);
+
+    await expect(
+      loadPlugin({
+        adapterPath: join(pluginDirectory, "adapter.ts"),
+        directory: pluginDirectory,
+        manifestPath: join(pluginDirectory, "manifest.yaml"),
+        sourceType: "installed",
+      }),
+    ).rejects.toThrow("Missing plugin install metadata");
+  });
+
+  test("rejects installed plugin adapters with invalid install metadata", async () => {
+    const pluginDirectory = await mkdtemp(join(tmpdir(), "bab-s19-invalid-"));
+    await writePlugin(pluginDirectory);
+    await writeFile(join(pluginDirectory, ".install.json"), "not json");
+
+    await expect(
+      loadPlugin({
+        adapterPath: join(pluginDirectory, "adapter.ts"),
+        directory: pluginDirectory,
+        manifestPath: join(pluginDirectory, "manifest.yaml"),
+        sourceType: "installed",
+      }),
+    ).rejects.toThrow("Invalid plugin install metadata");
+  });
+
+  test("allows bundled plugin adapters without install metadata", async () => {
+    const pluginDirectory = await mkdtemp(join(tmpdir(), "bab-s19-bundled-"));
+    await writePlugin(pluginDirectory);
+
+    const plugin = await loadPlugin({
+      adapterPath: join(pluginDirectory, "adapter.ts"),
+      directory: pluginDirectory,
+      manifestPath: join(pluginDirectory, "manifest.yaml"),
+      sourceType: "bundled",
+    });
+
+    expect(plugin.adapter).toBeDefined();
+  });
+});
+
 describe("Q3: centralized version constant", () => {
   test("VERSION matches package.json version", () => {
     expect(VERSION).toBe(pkg.version);

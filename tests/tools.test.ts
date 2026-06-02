@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 
 import type { BabConfig } from "../src/config";
 import { invalidatePluginCache } from "../src/delegate/plugin-cache";
@@ -26,6 +26,33 @@ function createConfig(
     },
     persistence: { enabled: false, enabledTools: new Set(), disabledTools: new Set() },
   };
+}
+
+async function writeInstallMetadata(pluginDirectory: string): Promise<void> {
+  const adapterContent = await Bun.file(join(pluginDirectory, "adapter.ts")).text();
+  const hasher = new Bun.CryptoHasher("sha256");
+  hasher.update(adapterContent);
+
+  await writeFile(
+    join(pluginDirectory, ".install.json"),
+    JSON.stringify(
+      {
+        adapter_hash: hasher.digest("hex"),
+        installed_at: new Date(0).toISOString(),
+        installer_version: "test",
+        manifest_name: `${basename(pluginDirectory)} test`,
+        manifest_version: "1.0.0",
+        plugin_id: basename(pluginDirectory),
+        plugin_subdir: basename(pluginDirectory),
+        resolved_commit: "test",
+        schema_version: 1,
+        source_original: "test",
+        source_url: "test",
+      },
+      null,
+      2,
+    ),
+  );
 }
 
 describe("utility tools", () => {
@@ -118,6 +145,7 @@ describe("delegate tool", () => {
         "};",
       ].join("\n"),
     );
+    await writeInstallMetadata(pluginDirectory);
 
     const tool = createDelegateTool(createConfig(pluginsDir));
     const result = await tool.execute({
@@ -180,6 +208,7 @@ describe("delegate tool", () => {
         "};",
       ].join("\n"),
     );
+    await writeInstallMetadata(pluginDirectory);
 
     const tool = createDelegateTool(createConfig(pluginsDir));
     const result = await tool.execute({ cli_name: "echo", prompt: "hello" });
@@ -244,6 +273,7 @@ describe("delegate tool", () => {
         "};",
       ].join("\n"),
     );
+    await writeInstallMetadata(pluginDirectory);
 
     const tool = createDelegateTool(createConfig(pluginsDir));
     const result = await tool.execute({
@@ -311,6 +341,7 @@ describe("delegate tool", () => {
         "};",
       ].join("\n"),
     );
+    await writeInstallMetadata(pluginDirectory);
 
     const tool = createDelegateTool(
       createConfig(pluginsDir, {

@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import YAML from "yaml";
 import { z } from "zod/v4";
 
-import { PluginInstallMetadataSchema } from "../commands/shared";
+import { readInstallMetadata } from "../commands/shared";
 import { PluginManifestSchema } from "../types";
 import type { PluginManifest } from "../types";
 import { readPluginEnv } from "../utils/env";
@@ -54,32 +54,30 @@ function resolveAdapter(
 async function verifyAdapterHash(
   adapterPath: string,
   pluginDirectory: string,
+  sourceType: "bundled" | "installed",
 ): Promise<void> {
-  const metadataPath = resolve(pluginDirectory, ".install.json");
+  if (sourceType === "bundled") {
+    return;
+  }
 
-  let content: string;
+  let metadata: Awaited<ReturnType<typeof readInstallMetadata>>;
 
   try {
-    content = await Bun.file(metadataPath).text();
-  } catch {
-    return;
+    metadata = await readInstallMetadata(pluginDirectory);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid plugin install metadata: ${message}`);
   }
 
-  let metadata: Record<string, unknown>;
-
-  try {
-    metadata = JSON.parse(content) as Record<string, unknown>;
-  } catch {
-    return;
+  if (!metadata) {
+    throw new Error("Missing plugin install metadata");
   }
 
-  const parseResult = PluginInstallMetadataSchema.safeParse(metadata);
-
-  if (!parseResult.success || !parseResult.data.adapter_hash) {
-    return;
+  if (!metadata.adapter_hash) {
+    throw new Error("Missing adapter hash in plugin install metadata");
   }
 
-  const expectedHash = parseResult.data.adapter_hash;
+  const expectedHash = metadata.adapter_hash;
   const adapterContent = await Bun.file(adapterPath).text();
   const hasher = new Bun.CryptoHasher("sha256");
 
@@ -95,6 +93,7 @@ async function verifyAdapterHash(
 async function loadAdapterModule(
   adapterPath: string,
   pluginDirectory: string,
+  sourceType: "bundled" | "installed",
 ): Promise<DelegatePluginAdapter | undefined> {
   const resolvedPath = await assertPathContainment(
     adapterPath,
@@ -102,7 +101,7 @@ async function loadAdapterModule(
     "adapter",
   );
 
-  await verifyAdapterHash(adapterPath, pluginDirectory);
+  await verifyAdapterHash(resolvedPath, pluginDirectory, sourceType);
 
   const module = await import(pathToFileURL(resolvedPath).href);
 
@@ -183,6 +182,7 @@ export async function loadPlugin(
         await loadAdapterModule(
           discoveredPlugin.adapterPath,
           discoveredPlugin.directory,
+          discoveredPlugin.sourceType ?? "installed",
         ),
         manifest,
       )

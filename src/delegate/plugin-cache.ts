@@ -2,7 +2,7 @@ import type { BabConfig } from "../config";
 import { getBundledPluginsRoot } from "../commands/shared";
 import { discoverPluginDirectories } from "./discovery";
 import { loadPlugins } from "./loader";
-import type { LoadedPlugin } from "./types";
+import type { DiscoveredPlugin, LoadedPlugin } from "./types";
 
 const PLUGIN_CACHE_TTL_MS = 5_000;
 
@@ -24,7 +24,15 @@ async function discoverAndLoad(
     discoverPluginDirectories(bundledRoot),
     discoverPluginDirectories(config.paths.pluginsDir),
   ]);
-  const allLoaded = await loadPlugins([...bundled, ...installed]);
+  const markSource = (
+    plugins: DiscoveredPlugin[],
+    sourceType: "bundled" | "installed",
+  ): DiscoveredPlugin[] => plugins.map((plugin) => ({ ...plugin, sourceType }));
+
+  const allLoaded = await loadPlugins([
+    ...markSource(bundled, "bundled"),
+    ...markSource(installed, "installed"),
+  ]);
   const byId = new Map(allLoaded.map((p) => [p.manifest.id, p]));
   return [...byId.values()];
 }

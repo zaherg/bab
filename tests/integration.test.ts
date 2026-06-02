@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 
 import { CORE_TOOL_NAMES } from "../src/bootstrap";
 import { type BabTestHarness, createBabTestHarness } from "./harness";
@@ -64,6 +64,33 @@ interface StubPluginOptions {
   noAdapter?: boolean;
 }
 
+async function writeInstallMetadata(pluginDir: string): Promise<void> {
+  const adapterContent = await Bun.file(join(pluginDir, "adapter.ts")).text();
+  const hasher = new Bun.CryptoHasher("sha256");
+  hasher.update(adapterContent);
+
+  await writeFile(
+    join(pluginDir, ".install.json"),
+    JSON.stringify(
+      {
+        adapter_hash: hasher.digest("hex"),
+        installed_at: new Date(0).toISOString(),
+        installer_version: "test",
+        manifest_name: `${basename(pluginDir)} test`,
+        manifest_version: "1.0.0",
+        plugin_id: basename(pluginDir),
+        plugin_subdir: basename(pluginDir),
+        resolved_commit: "test",
+        schema_version: 1,
+        source_original: "test",
+        source_url: "test",
+      },
+      null,
+      2,
+    ),
+  );
+}
+
 // Creates a minimal stub plugin directory.
 // Uses `echo` as the CLI command so the loader's binary-on-PATH check passes.
 // All adapter protocol details (event shapes, module export format) are hidden here.
@@ -111,6 +138,7 @@ async function createStubPlugin(
         ].join("\n");
 
     await writeFile(join(pluginDir, "adapter.ts"), adapterBody);
+    await writeInstallMetadata(pluginDir);
   }
 
   return pluginDir;
@@ -235,6 +263,7 @@ describe("Bab MCP server integration", () => {
       "  },",
       "};",
     ].join("\n"));
+    await writeInstallMetadata(pluginDir);
 
     const harness = await createBabTestHarness([pluginDir]);
     activeHarnesses.push(harness);

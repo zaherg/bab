@@ -49,6 +49,7 @@ export interface DiscoveredPlugin {
   adapterPath?: string;
   directory: string;
   manifestPath: string;
+  sourceType?: "bundled" | "installed";
 }
 
 export interface LoadedPlugin {

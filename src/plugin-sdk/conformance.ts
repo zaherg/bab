@@ -52,6 +52,7 @@ export async function validatePluginDirectory(
       adapterPath: adapterExists ? adapterPath : undefined,
       directory: resolvedDirectory,
       manifestPath,
+      sourceType: "bundled",
     });
 
     if (!loadedPlugin.adapter) {
