@@ -27,7 +27,7 @@ export function createListModelsTool(
           .filter((p) => p.adapter?.listModels)
           .map(async (plugin) => {
             try {
-              const models = await plugin.adapter?.listModels?.();
+              const models = (await plugin.adapter?.listModels?.()) ?? [];
               return { id: plugin.manifest.id, models };
             } catch {
               return { id: plugin.manifest.id, models: [] as string[] };
