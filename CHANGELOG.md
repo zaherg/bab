@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [0.1.3-20260602] - 2026-06-02
 
 ### Added
 
@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validate custom provider URLs.
 - Require installed adapter metadata.
 - Update files.
+- Update changelog.
+- Apply biome --write --unsafe auto-fixes.
 
 ## [0.1.3-20260326] - 2026-03-26
 
