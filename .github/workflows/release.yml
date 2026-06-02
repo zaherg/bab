@@ -42,6 +42,9 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Bundle plugins
+        run: bun run scripts/bundle-plugins.ts
+
       - name: Compile binary
         run: bun build --compile src/cli.ts --outfile bab-${{ matrix.platform }}-${{ matrix.arch }}
 
