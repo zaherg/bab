@@ -325,7 +325,7 @@ Optional `adapter.ts` files can implement runtime behavior for CLI parsing, vali
   Core workflow tools
 - `debug`, `analyze`, `tracer`, `refactor`, `testgen`, `docgen`, `secaudit`, `precommit`, `challenge`
   Specialized workflow tools
-- `listmodels`
+- `list_models`
   Lists models available from configured providers
 - `version`
   Returns Bab and runtime version details

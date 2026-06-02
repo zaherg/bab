@@ -66,8 +66,8 @@ Most workflow tools share these parameters:
 
 ## Conversation Threading
 
-- Max **8 turns** of history per thread
-- Max **16 total turns** before requiring a new continuation
+- Max **20 total turns** per thread before requiring a new continuation
+- Only the most recent **8 turns** are injected into the prompt context
 - Use `continuation_id` to maintain context across multiple tool calls
 
 ## File Embedding

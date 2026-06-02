@@ -46,8 +46,10 @@ Bab creates and uses `~/.config/bab/`:
 
 - `~/.config/bab/env` — dotenv-style environment file
 - `~/.config/bab/plugins/` — delegate plugins (one directory per plugin)
+- `~/.config/bab/plugins/<plugin-id>/env` — per-plugin environment overrides (merged on top of the global env file)
 - `~/.config/bab/prompts/` — prompt overrides
 - `~/.config/bab/logs/` — log files (`mcp.log`, `error.log`, per-plugin logs)
+- `~/.config/bab/reports/` — fallback directory for persisted workflow reports (see [Report Persistence](./report-persistence.md))
 
 ### Provider API Keys
 
@@ -64,6 +66,7 @@ Set these in `~/.config/bab/env` or in your MCP client config:
 | Variable | Type | Description |
 |---|---|---|
 | `BAB_DISABLED_TOOLS` | comma-separated | Tool names to exclude |
+| `BAB_ENABLED_TOOLS` | comma-separated | If set, only these tools are registered (takes priority over `BAB_DISABLED_TOOLS`) |
 | `BAB_EAGER_TOOLS` | boolean | Set to `1` to disable lazy tool loading |
 | `BAB_PERSIST` | boolean | Set to `false` to disable report persistence |
 | `BAB_PERSIST_TOOLS` | comma-separated | Only persist reports for these tools |

@@ -176,18 +176,27 @@ Bab has two ways to call AI models:
 | **Used by** | `chat`, `thinkdeep`, `codereview`, `consensus`, all workflow tools | `delegate` tool only |
 | **How it works** | Direct API calls via AI SDK | Spawns external CLI process |
 | **Configuration** | API keys in env | Plugin adapter.ts + manifest.yaml |
-| **Models** | Static registry (Gemini, GPT, Claude, etc.) | CLI-specific (whatever the CLI supports) |
+| **Models** | Static registry (Gemini, GPT, Claude, etc.) + dynamic discovery for providers that support it | CLI-specific (whatever the CLI supports) |
 | **Example** | `chat` with `model: "gemini-2.5-pro"` | `delegate` with `cli_name: "copilot"` |
+
+### Dynamic Model Discovery
+
+For supported providers (Google, OpenAI, OpenRouter), bab calls the provider's `GET /models` API at startup and caches the result. Discovered models are merged with the static registry and exposed through `list_models`, so users see the full current catalog without code changes. Custom providers also discover models when `CUSTOM_API_URL` points to an OpenAI-compatible endpoint that exposes `/models`. Discovery is cached per process and re-runs the next time `list_models` is called.
 
 ## File Paths Reference
 
 | Path | Purpose |
 |------|---------|
 | `~/.config/bab/` | Config root directory |
-| `~/.config/bab/env` | API keys and environment variables |
+| `~/.config/bab/env` | API keys and global environment variables |
 | `~/.config/bab/plugins/` | Installed delegate plugins |
-| `~/.config/bab/logs/bab.log` | Main server log |
-| `~/.config/bab/logs/<plugin-id>.log` | Per-plugin delegate logs |
+| `~/.config/bab/plugins/<plugin-id>/env` | Per-plugin environment overrides (merged on top of the global env file) |
+| `~/.config/bab/logs/mcp.log` | Main server log (lifecycle, tool calls, protocol events, all levels) |
+| `~/.config/bab/logs/error.log` | Warnings and errors only |
+| `~/.config/bab/logs/<plugin-id>.log` | Per-plugin delegate I/O (e.g. `copilot.log`, `opencode.log`) |
+| `~/.config/bab/reports/` | Fallback directory for persisted workflow reports (see [Report Persistence](./report-persistence.md)) |
+
+`BAB_LOG_LEVEL=debug` is intended for local troubleshooting. It may expose stack traces, file paths, and stack frames to the connected MCP client in tool error responses.
 
 ## Other Environment Variables
 
