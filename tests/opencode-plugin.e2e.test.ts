@@ -36,7 +36,7 @@ async function createOpenCodeStub(binDirectory: string): Promise<void> {
   const source = [
     "#!/usr/bin/env bun",
     "const args = Bun.argv.slice(2);",
-    "const captureDirectory = process.env.BAB_OPENCODE_CAPTURE_DIR ?? '.';",
+    "const captureDirectory = process.env.OPENCODE_CAPTURE_DIR ?? '.';",
     "if (args[0] === 'auth' && args[1] === 'list') {",
     "  console.log('●  DeepSeek api');",
     "  process.exit(0);",
@@ -67,7 +67,7 @@ describe("OpenCode plugin integration", () => {
     const harness = await createBabTestHarness(
       [join(process.cwd(), "plugins/opencode")],
       {
-        BAB_OPENCODE_CAPTURE_DIR: captureDirectory,
+        OPENCODE_CAPTURE_DIR: captureDirectory,
         BAB_OPENCODE_MODEL: "deepseek/deepseek-chat",
         PATH: `${binDirectory}:${process.env.PATH ?? ""}`,
       },
