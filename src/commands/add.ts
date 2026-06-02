@@ -396,7 +396,22 @@ export async function installPluginsFromSource(
       });
       stagedDirectories.push(stageDirectory);
 
+      let adapterHash: string | undefined;
+
+      try {
+        const adapterContent = await Bun.file(
+          join(stageDirectory, "adapter.ts"),
+        ).text();
+        const hasher = new Bun.CryptoHasher("sha256");
+
+        hasher.update(adapterContent);
+        adapterHash = hasher.digest("hex");
+      } catch {
+        // No adapter file or read error — hash stays undefined
+      }
+
       await writeInstallMetadata(stageDirectory, {
+        adapter_hash: adapterHash,
         installed_at: new Date().toISOString(),
         installer_version: VERSION,
         manifest_name: candidate.manifest.name,

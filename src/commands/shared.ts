@@ -32,6 +32,7 @@ export const PluginInstallMetadataSchema = z.object({
   plugin_id: z.string(),
   plugin_subdir: z.string(),
   resolved_commit: z.string(),
+  adapter_hash: z.string().optional(),
   schema_version: z.literal(1),
   source_original: z.string(),
   source_ref: z.string().optional(),

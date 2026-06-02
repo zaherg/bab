@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import YAML from "yaml";
 import { z } from "zod/v4";
 
+import { PluginInstallMetadataSchema } from "../commands/shared";
 import { PluginManifestSchema } from "../types";
 import type { PluginManifest } from "../types";
 import { readPluginEnv } from "../utils/env";
@@ -50,6 +51,47 @@ function resolveAdapter(
 }
 
 
+async function verifyAdapterHash(
+  adapterPath: string,
+  pluginDirectory: string,
+): Promise<void> {
+  const metadataPath = resolve(pluginDirectory, ".install.json");
+
+  let content: string;
+
+  try {
+    content = await Bun.file(metadataPath).text();
+  } catch {
+    return;
+  }
+
+  let metadata: Record<string, unknown>;
+
+  try {
+    metadata = JSON.parse(content) as Record<string, unknown>;
+  } catch {
+    return;
+  }
+
+  const parseResult = PluginInstallMetadataSchema.safeParse(metadata);
+
+  if (!parseResult.success || !parseResult.data.adapter_hash) {
+    return;
+  }
+
+  const expectedHash = parseResult.data.adapter_hash;
+  const adapterContent = await Bun.file(adapterPath).text();
+  const hasher = new Bun.CryptoHasher("sha256");
+
+  hasher.update(adapterContent);
+
+  if (hasher.digest("hex") !== expectedHash) {
+    throw new Error(
+      `Adapter integrity check failed: file has been modified since install`,
+    );
+  }
+}
+
 async function loadAdapterModule(
   adapterPath: string,
   pluginDirectory: string,
@@ -59,6 +101,9 @@ async function loadAdapterModule(
     pluginDirectory,
     "adapter",
   );
+
+  await verifyAdapterHash(adapterPath, pluginDirectory);
+
   const module = await import(pathToFileURL(resolvedPath).href);
 
   return (module.default ?? module.adapter ?? module) as DelegatePluginAdapter;
