@@ -32,7 +32,7 @@ That name fits the project because Bab acts as a gateway between MCP clients and
 - Full core and specialized workflow tool suite
 - Lazy tool loading by default (5 tools at startup vs 17), with on-demand auto-load
 - CLI entrypoint with `serve`, `add`, `remove`, `list`, `selfupdate`, and `test-plugin` commands
-- Plugin SDK export surface via `@babmcp/bab/sdk`
+- Plugin SDK export surface via `@zaherg/bab/sdk`
 - Delegate environment hardening: API keys and `BAB_*` internal vars are never leaked to subprocesses
 - Dedicated error log at `~/.config/bab/logs/error.log` for quick debugging
 
@@ -41,27 +41,27 @@ That name fits the project because Bab acts as a gateway between MCP clients and
 ### Install script (macOS / Linux)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/babmcp/bab/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/zaherg/bab/main/install.sh | bash
 ```
 
 Options:
 
 ```bash
 # custom install directory
-curl -fsSL https://raw.githubusercontent.com/babmcp/bab/main/install.sh | bash -s -- --prefix /usr/local/bin
+curl -fsSL https://raw.githubusercontent.com/zaherg/bab/main/install.sh | bash -s -- --prefix /usr/local/bin
 
 # skip checksum verification (not recommended)
-curl -fsSL https://raw.githubusercontent.com/babmcp/bab/main/install.sh | bash -s -- --no-verify
+curl -fsSL https://raw.githubusercontent.com/zaherg/bab/main/install.sh | bash -s -- --no-verify
 
 # install the latest pre-release (beta, rc, or dated builds)
-curl -fsSL https://raw.githubusercontent.com/babmcp/bab/main/install.sh | bash -s -- --prerelease
+curl -fsSL https://raw.githubusercontent.com/zaherg/bab/main/install.sh | bash -s -- --prerelease
 ```
 
 The script downloads the binary to a temp dir, verifies its SHA-256 against `checksums.sha256`, strips the macOS quarantine xattr on the final install path, and then `mv`s it to `--prefix` (default `~/.local/bin`).
 
 ### Binary download
 
-Grab the latest binary for your platform from the [releases page](https://github.com/babmcp/bab/releases):
+Grab the latest binary for your platform from the [releases page](https://github.com/zaherg/bab/releases):
 
 | Platform | Architecture | Asset |
 |----------|-------------|-------|
@@ -82,7 +82,7 @@ mv bab-* /usr/local/bin/bab
 Requires [Bun](https://bun.sh) 1.3.9 or newer.
 
 ```bash
-git clone https://github.com/babmcp/bab.git && cd bab
+git clone https://github.com/zaherg/bab.git && cd bab
 bun install
 bun run build:binary   # compiled binary at dist/bab
 ```
@@ -106,7 +106,7 @@ bab serve
 Install first-party plugins:
 
 ```bash
-bab add git@github.com:babmcp/plugins.git
+bab add git@github.com:zaherg/bab-plugins.git
 ```
 
 Run the test suite:
@@ -288,7 +288,7 @@ Bab keeps `opencode` bundled as the built-in reference plugin. Install the exter
 
 ```bash
 # Install all first-party plugins (claude, codex, copilot)
-bab add babmcp/plugins
+bab add zaherg/bab-plugins
 
 # List installed plugins
 bab list
@@ -317,7 +317,7 @@ tool_prompts:
   secaudit: prompts/secaudit.txt
 ```
 
-When a tool routes through a plugin model, bab uses the plugin's prompt instead of the built-in default. See [Plugin Authoring](https://babmcp.github.io/bab/plugin-authoring/) for details.
+When a tool routes through a plugin model, bab uses the plugin's prompt instead of the built-in default. See [Plugin Authoring](https://zaherg.github.io/bab/plugin-authoring/) for details.
 
 Optional `adapter.ts` files can implement runtime behavior for CLI parsing, validation, and cancellation. Plugins without adapters can still be discovered, but the `delegate` tool requires an adapter to execute them.
 
@@ -336,13 +336,13 @@ Optional `adapter.ts` files can implement runtime behavior for CLI parsing, vali
 
 ## Docs
 
-Full documentation is available at **[babmcp.github.io/bab](https://babmcp.github.io/bab/)** or in [`docs/`](./docs/index.md):
+Full documentation is available at **[zaherg.github.io/bab](https://zaherg.github.io/bab/)** or in [`docs/`](./docs/index.md):
 
-- [Getting Started](https://babmcp.github.io/bab/getting-started/)
-- [Provider Setup](https://babmcp.github.io/bab/provider-setup/)
-- [Plugin Authoring](https://babmcp.github.io/bab/plugin-authoring/)
-- [Adapter Tutorial](https://babmcp.github.io/bab/adapter-tutorial/)
-- [Tool Reference](https://babmcp.github.io/bab/tool-reference/)
+- [Getting Started](https://zaherg.github.io/bab/getting-started/)
+- [Provider Setup](https://zaherg.github.io/bab/provider-setup/)
+- [Plugin Authoring](https://zaherg.github.io/bab/plugin-authoring/)
+- [Adapter Tutorial](https://zaherg.github.io/bab/adapter-tutorial/)
+- [Tool Reference](https://zaherg.github.io/bab/tool-reference/)
 
 ## Project Layout
 
@@ -357,7 +357,7 @@ src/
   prompts/            # Built-in tool and role prompts
   providers/          # Vercel AI SDK registry, model gateway
   tools/              # 17 built-in tools (lazy-loaded by default)
-  sdk/                # Plugin author SDK (@babmcp/bab/sdk)
+  sdk/                # Plugin author SDK (@zaherg/bab/sdk)
   commands/           # CLI commands (serve, add, remove, list, selfupdate)
   types/              # Shared type definitions
   utils/              # Env sanitization, path containment, logging, tokens
@@ -376,7 +376,7 @@ bun run build
 bun run build:binary
 bunx tsc -p tsconfig.json --noEmit
 bun run src/cli.ts serve
-bun run src/cli.ts add git@github.com:babmcp/plugins.git --yes
+bun run src/cli.ts add git@github.com:zaherg/bab-plugins.git --yes
 bun run src/cli.ts list
 bun run src/cli.ts test-plugin ../bab-plugins/claude
 ```
