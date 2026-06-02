@@ -8,6 +8,12 @@ const DEFAULT_MAX_CONCURRENT =
     ? RAW_CONCURRENCY
     : 5;
 
+const RAW_TIMEOUT = Number(process.env.BAB_CLI_TIMEOUT_MS);
+export const DEFAULT_TIMEOUT_MS =
+  Number.isFinite(RAW_TIMEOUT) && RAW_TIMEOUT > 0
+    ? RAW_TIMEOUT
+    : 300_000;
+
 export interface ProcessRunOptions {
   args?: string[];
   command: string;
@@ -50,8 +56,8 @@ export class ProcessRunner {
       cwd,
       env,
       input,
-      killGraceMs = 250,
-      timeoutMs = 3 * 60 * 60 * 1_000,
+      killGraceMs = 5_000,
+      timeoutMs = DEFAULT_TIMEOUT_MS,
     } = options;
 
     if (this.activeProcesses.has(runId)) {
@@ -65,12 +71,18 @@ export class ProcessRunner {
       );
     }
 
+    const resolvedCommand = Bun.which(command);
+
+    if (!resolvedCommand) {
+      throw new Error(`Command not found on PATH: ${command}`);
+    }
+
     const startedAt = Date.now();
     let timedOut = false;
     let timeoutHandle: Timer | undefined;
 
     return new Promise<ProcessRunResult>((resolve, reject) => {
-      const child = spawn(command, args, {
+      const child = spawn(resolvedCommand, args, {
         cwd,
         env,
         stdio: "pipe",
@@ -85,15 +97,13 @@ export class ProcessRunner {
       child.stderr.setEncoding("utf8");
 
       child.stdout.on("data", (chunk: string) => {
-        stdout += chunk;
-        if (stdout.length > MAX_CAPTURE_BYTES) {
-          stdout = stdout.slice(-MAX_CAPTURE_BYTES);
+        if (stdout.length < MAX_CAPTURE_BYTES) {
+          stdout += chunk;
         }
       });
       child.stderr.on("data", (chunk: string) => {
-        stderr += chunk;
-        if (stderr.length > MAX_CAPTURE_BYTES) {
-          stderr = stderr.slice(-MAX_CAPTURE_BYTES);
+        if (stderr.length < MAX_CAPTURE_BYTES) {
+          stderr += chunk;
         }
       });
 

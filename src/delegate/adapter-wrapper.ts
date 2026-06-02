@@ -1,5 +1,5 @@
 import type { DelegateEvent, PluginManifest } from "../types";
-import { ProcessRunner, type ProcessRunResult } from "./process-runner";
+import { DEFAULT_TIMEOUT_MS, ProcessRunner, type ProcessRunResult } from "./process-runner";
 import type {
   DelegatePluginAdapter,
   DelegateRunInput,
@@ -37,12 +37,6 @@ export function buildDelegateEvents(
     },
   ];
 }
-
-const RAW_TIMEOUT = Number(process.env.BAB_CLI_TIMEOUT_MS);
-const DEFAULT_TIMEOUT_MS =
-  Number.isFinite(RAW_TIMEOUT) && RAW_TIMEOUT > 0
-    ? RAW_TIMEOUT
-    : 3 * 60 * 60 * 1_000;
 
 export function wrapSimpleAdapter(
   adapter: SimpleAdapter,
