@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { loadConfig } from "../src/config";
 import { loadPlugin, loadPlugins } from "../src/delegate/loader";
 import { ProcessRunner } from "../src/delegate/process-runner";
+import { customProviderBaseUrl, validateCustomApiUrl } from "../src/providers/custom-url";
 import { resolveRole } from "../src/delegate/roles";
 import { InMemoryStorageAdapter } from "../src/memory/memory";
 import { parseSource } from "../src/commands/source-parser";
@@ -521,6 +522,30 @@ describe("S17: parseEnvFile mismatched quote rejection", () => {
     const { parseEnvFile } = require("../src/config");
     const result = parseEnvFile("KEY=secret");
     expect(result.KEY).toBe("secret");
+  });
+});
+
+describe("S18: custom provider URL validation", () => {
+  test("rejects insecure user-provided CUSTOM_API_URL unless explicitly allowed", () => {
+    expect(() => validateCustomApiUrl("http://example.com/v1", false)).toThrow(
+      "CUSTOM_API_URL must use https://",
+    );
+  });
+
+  test("rejects RFC1918 private network CUSTOM_API_URL values", () => {
+    expect(() => validateCustomApiUrl("https://192.168.1.10/v1", false)).toThrow(
+      "CUSTOM_API_URL host is not allowed",
+    );
+  });
+
+  test("allows HTTPS public CUSTOM_API_URL values", () => {
+    expect(validateCustomApiUrl("https://api.example.com/v1", false)).toBe(
+      "https://api.example.com/v1",
+    );
+  });
+
+  test("preserves hardcoded localhost default when CUSTOM_API_URL is unset", () => {
+    expect(customProviderBaseUrl({})).toBe("http://localhost:11434/v1");
   });
 });
 

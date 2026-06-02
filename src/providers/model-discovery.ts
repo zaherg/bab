@@ -1,5 +1,6 @@
 import { logger } from "../utils/logger";
 import type { ModelInfo, ProviderId } from "../types";
+import { validateCustomApiUrl } from "./custom-url";
 
 const CACHE_TTL_MS = 48 * 60 * 60 * 1000; // 48 hours
 
@@ -20,6 +21,10 @@ const PROVIDER_DEFAULT_CONTEXT: Partial<Record<ProviderId, number>> = {
 interface CacheEntry {
   models: ModelInfo[];
   fetchedAt: number;
+}
+
+interface DiscoverModelsOptions {
+  allowInsecureCustomUrl?: boolean;
 }
 
 const cache = new Map<ProviderId, CacheEntry>();
@@ -101,9 +106,13 @@ async function fetchFromProvider(
   providerId: ProviderId,
   apiKey: string,
   baseUrl?: string,
+  options: DiscoverModelsOptions = {},
 ): Promise<ModelInfo[]> {
-  const endpoint = baseUrl
-    ? `${baseUrl.replace(/\/$/, "")}/models`
+  const validatedBaseUrl = providerId === "custom" && baseUrl
+    ? validateCustomApiUrl(baseUrl, options.allowInsecureCustomUrl === true)
+    : baseUrl;
+  const endpoint = validatedBaseUrl
+    ? `${validatedBaseUrl.replace(/\/$/, "")}/models`
     : PROVIDER_API_ENDPOINTS[providerId];
 
   if (!endpoint) return [];
@@ -138,6 +147,7 @@ export async function discoverModels(
   providerId: ProviderId,
   apiKey: string,
   baseUrl?: string,
+  options: DiscoverModelsOptions = {},
 ): Promise<ModelInfo[]> {
   const cached = cache.get(providerId);
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
@@ -148,7 +158,7 @@ export async function discoverModels(
   const existing = inflight.get(providerId);
   if (existing) return existing;
 
-  const promise = fetchFromProvider(providerId, apiKey, baseUrl)
+  const promise = fetchFromProvider(providerId, apiKey, baseUrl, options)
     .then((models) => {
       cache.set(providerId, { models, fetchedAt: Date.now() });
       inflight.delete(providerId);

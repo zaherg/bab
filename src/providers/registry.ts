@@ -11,6 +11,7 @@ import {
 import type { BabConfig } from "../config";
 import type { ModelInfo, ProviderId, Result, ToolError } from "../types";
 import { estimateTokenCount } from "../utils/tokens";
+import { customProviderBaseUrl } from "./custom-url";
 import { discoverModels, getAllCachedModels } from "./model-discovery";
 
 type GenerateTextFn = typeof aiGenerateText;
@@ -246,7 +247,9 @@ export class ProviderRegistry {
     const apiKey = cfg.apiKey ? (this.config.env[cfg.apiKey] ?? "") : "";
     const baseUrl =
       "baseUrl" in cfg && cfg.baseUrl ? this.config.env[cfg.baseUrl] : undefined;
-    return discoverModels(pid, apiKey, baseUrl);
+    return discoverModels(pid, apiKey, baseUrl, {
+      allowInsecureCustomUrl: this.config.env.BAB_ALLOW_INSECURE_CUSTOM === "1",
+    });
   }
 
   async generateText(
@@ -405,7 +408,7 @@ export class ProviderRegistry {
       case "custom":
         return createOpenAICompatible({
           apiKey: this.config.env.CUSTOM_API_KEY,
-          baseURL: this.config.env.CUSTOM_API_URL ?? "http://localhost:11434/v1",
+          baseURL: customProviderBaseUrl(this.config.env),
           name: "custom",
         });
     }
