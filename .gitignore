@@ -16,3 +16,4 @@ coverage/
 .env
 .env.*
 argv.json
+src/bundled-plugins.gen.ts

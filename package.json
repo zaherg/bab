@@ -20,8 +20,9 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "build": "mkdir -p dist/sdk && bun build src/cli.ts --target bun --outfile dist/cli.js && bun build src/server.ts --target bun --outfile dist/server.js && bun build src/sdk/index.ts --target bun --outfile dist/sdk/index.js && bun build src/sdk/test-utils.ts --target bun --outfile dist/sdk/test-utils.js",
-    "build:binary": "bun build --compile src/cli.ts --outfile dist/bab",
+    "build": "bun run scripts/bundle-plugins.ts && mkdir -p dist/sdk && bun build src/cli.ts --target bun --outfile dist/cli.js && bun build src/server.ts --target bun --outfile dist/server.js && bun build src/sdk/index.ts --target bun --outfile dist/sdk/index.js && bun build src/sdk/test-utils.ts --target bun --outfile dist/sdk/test-utils.js",
+    "build:binary": "bun run scripts/bundle-plugins.ts && bun build --compile src/cli.ts --outfile dist/bab",
+    "bundle:plugins": "bun run scripts/bundle-plugins.ts",
     "dev": "bun run src/server.ts",
     "lint": "biome check .",
     "format": "biome format --write .",

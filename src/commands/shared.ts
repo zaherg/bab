@@ -1,4 +1,5 @@
 import { lstat, readdir, realpath, stat } from "node:fs/promises";
+import { homedir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 
 import YAML from "yaml";
@@ -151,7 +152,35 @@ export async function getBundledPluginsRoot(
     }
   }
 
+  const extracted = await extractEmbeddedBundledPlugins();
+  if (extracted) {
+    return extracted;
+  }
+
   return resolve(import.meta.dir, "..", "..", "plugins");
+}
+
+async function extractEmbeddedBundledPlugins(): Promise<string | undefined> {
+  try {
+    const module_ = (await import("../bundled-plugins.gen" as string)) as {
+      bundledPlugins?: import("../../scripts/bundle-plugins").BundledPlugin[];
+    };
+    const plugins = module_.bundledPlugins;
+    if (!plugins || plugins.length === 0) {
+      return undefined;
+    }
+
+    const targetRoot = join(
+      process.env.BAB_BUNDLED_PLUGINS_DIR ??
+        join(homedir(), ".config", "bab", "bundled"),
+    );
+    const { extractBundledPlugins } = (await import(
+      "../../scripts/bundle-plugins" as string
+    )) as typeof import("../../scripts/bundle-plugins");
+    return await extractBundledPlugins(targetRoot, plugins);
+  } catch {
+    return undefined;
+  }
 }
 
 export async function pathExists(path: string): Promise<boolean> {
