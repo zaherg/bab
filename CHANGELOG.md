@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update files.
 - Update changelog.
 - Apply biome --write --unsafe auto-fixes.
+- Bump version to 0.1.3-20260326.
+- Narrow plugin adapter listModels result to string[].
 
 ## [0.1.3-20260326] - 2026-03-26
 
