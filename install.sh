@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ── Constants ───────────────────────────────────────────────────────
-OWNER="babmcp"
+OWNER="zaherg"
 REPO="bab"
 GITHUB_API="https://api.github.com/repos/${OWNER}/${REPO}/releases/latest"
 DEFAULT_PREFIX="${HOME}/.local/bin"
@@ -37,6 +37,7 @@ Options:
   --prefix DIR   Install to DIR instead of ~/.local/bin
   --force        Overwrite existing install (even if Homebrew-managed)
   --no-verify    Skip checksum verification
+  --prerelease   Install the latest pre-release (beta, rc, dated) instead of the latest stable
   --help, -h     Show this help message
 EOF
 }
@@ -45,6 +46,7 @@ EOF
 PREFIX=""
 FORCE=0
 NO_VERIFY=0
+PRERELEASE=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -59,6 +61,8 @@ while [ $# -gt 0 ]; do
       FORCE=1; shift ;;
     --no-verify)
       NO_VERIFY=1; shift ;;
+    --prerelease)
+      PRERELEASE=1; shift ;;
     --help|-h)
       usage; exit 0 ;;
     *)
@@ -96,17 +100,34 @@ detect_platform() {
 
 # ── Resolve latest version ─────────────────────────────────────────
 resolve_version() {
-  info "Fetching latest release..."
-  local response
-  response="$(curl -fsSL "$GITHUB_API")" \
-    || die "Failed to fetch latest release from GitHub. Check your connection."
-  if command -v jq >/dev/null 2>&1; then
-    VERSION="$(printf '%s' "$response" | jq -r '.tag_name')"
+  if [ "$PRERELEASE" -eq 1 ]; then
+    info "Fetching latest pre-release..."
+    local response
+    response="$(curl -fsSL "https://api.github.com/repos/${OWNER}/${REPO}/releases?per_page=20")" \
+      || die "Failed to fetch releases from GitHub. Check your connection."
+
+    if command -v jq >/dev/null 2>&1; then
+      VERSION="$(printf '%s' "$response" | jq -r '[.[] | select(.prerelease == true)][0].tag_name // empty')"
+    else
+      VERSION="$(printf '%s' "$response" \
+        | awk '/"tag_name"/{tag=$0} /"prerelease": *true/{pr=1} /}/&&pr{print tag; pr=0; tag=""; exit}' \
+        | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')"
+    fi
+    [ -n "$VERSION" ] || die "No pre-release found. Use --prerelease=0 (default) to install the latest stable."
+    info "Latest pre-release: ${VERSION}"
   else
-    VERSION="$(printf '%s' "$response" | grep '"tag_name"' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')"
+    info "Fetching latest release..."
+    local response
+    response="$(curl -fsSL "$GITHUB_API")" \
+      || die "Failed to fetch latest release from GitHub. Check your connection."
+    if command -v jq >/dev/null 2>&1; then
+      VERSION="$(printf '%s' "$response" | jq -r '.tag_name')"
+    else
+      VERSION="$(printf '%s' "$response" | grep '"tag_name"' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')"
+    fi
+    [ -n "$VERSION" ] || die "Could not determine latest version"
+    info "Latest version: ${VERSION}"
   fi
-  [ -n "$VERSION" ] || die "Could not determine latest version"
-  info "Latest version: ${VERSION}"
 }
 
 # ── Fetch and install ──────────────────────────────────────────────
@@ -213,6 +234,11 @@ install_binary() {
   else
     info "Elevated permissions required to write to ${INSTALL_DIR}"
     sudo mv "${TMPDIR_DL}/bab" "$INSTALL_PATH"
+  fi
+
+  # Strip macOS quarantine attribute (mv can preserve xattrs across the move)
+  if [ "$PLATFORM" = "darwin" ]; then
+    xattr -d com.apple.quarantine "$INSTALL_PATH" 2>/dev/null || true
   fi
 
   ok "Installed bab to ${INSTALL_PATH}"
