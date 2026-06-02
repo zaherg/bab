@@ -5,6 +5,7 @@ import {
   lstat,
   mkdir,
   readdir,
+  realpath,
   rename,
   rm,
   stat,
@@ -348,10 +349,40 @@ export async function regenerateSkills(
         await mkdir(agent.skillsDir, { recursive: true });
       }
 
-      await cleanupOrphanDirs(agent.skillsDir);
+      let resolvedSkillsDir: string;
+      try {
+        resolvedSkillsDir = await realpath(agent.skillsDir);
+      } catch {
+        stderr.write(
+          `Warning: cannot resolve ${agent.skillsDir}, skipping\n`,
+        );
+        skipped.push(agent.id);
+        continue;
+      }
+
+      let resolvedConfigDir: string;
+      try {
+        resolvedConfigDir = await realpath(agent.configDir);
+      } catch {
+        stderr.write(
+          `Warning: cannot resolve config dir ${agent.configDir}, skipping\n`,
+        );
+        skipped.push(agent.id);
+        continue;
+      }
+
+      if (!resolvedSkillsDir.startsWith(resolvedConfigDir + "/")) {
+        stderr.write(
+          `Warning: ${agent.skillsDir} resolves outside config dir, skipping\n`,
+        );
+        skipped.push(agent.id);
+        continue;
+      }
+
+      await cleanupOrphanDirs(resolvedSkillsDir);
 
       if (!options.force) {
-        const existing = await readMetadata(agent.skillsDir, stderr);
+        const existing = await readMetadata(resolvedSkillsDir, stderr);
 
         if (existing) {
           await ensureGenerated();
@@ -363,7 +394,7 @@ export async function regenerateSkills(
         }
       }
 
-      if (await isUserModified(agent.skillsDir, stderr)) {
+      if (await isUserModified(resolvedSkillsDir, stderr)) {
         skipped.push(agent.id);
         continue;
       }
@@ -377,7 +408,7 @@ export async function regenerateSkills(
         fingerprint: fingerprint as string,
       };
 
-      const locked = await acquireLock(agent.skillsDir);
+      const locked = await acquireLock(resolvedSkillsDir);
 
       if (!locked) {
         stderr.write(
@@ -389,7 +420,7 @@ export async function regenerateSkills(
 
       try {
         const written = await writeSkillDirectory(
-          agent.skillsDir,
+          resolvedSkillsDir,
           (generated as GenerateResult).content,
           metadata,
           stderr,
@@ -399,7 +430,7 @@ export async function regenerateSkills(
           agentsUpdated.push(agent.id);
         }
       } finally {
-        await releaseLock(agent.skillsDir);
+        await releaseLock(resolvedSkillsDir);
       }
     } catch (error) {
       stderr.write(

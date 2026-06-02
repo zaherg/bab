@@ -83,11 +83,16 @@ export function getConfigPaths(homeDirectory = homedir()): BabConfigPaths {
 function normalizeEnvValue(rawValue: string): string {
   const trimmed = rawValue.trim();
 
-  if (
-    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-    (trimmed.startsWith("'") && trimmed.endsWith("'"))
-  ) {
+  if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
     return trimmed.slice(1, -1);
+  }
+
+  if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
+    return trimmed.slice(1, -1);
+  }
+
+  if (trimmed.startsWith('"') || trimmed.startsWith("'")) {
+    throw new Error(`mismatched quotes in value: ${trimmed}`);
   }
 
   return trimmed;
@@ -129,7 +134,13 @@ export function parseEnvFile(
       );
     }
 
-    parsed[key] = normalizeEnvValue(value);
+    try {
+      parsed[key] = normalizeEnvValue(value);
+    } catch (error) {
+      throw new Error(
+        `${source}: line ${index + 1}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
 
   return parsed;

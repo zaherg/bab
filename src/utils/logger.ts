@@ -55,9 +55,42 @@ function wrap(category: string[]): WrappedLogger {
   };
 }
 
+const SECRET_REDACTION_PATTERNS: Array<{
+  pattern: RegExp;
+  replacement: string;
+}> = [
+  { pattern: /\b(sk|pk)-[a-zA-Z0-9]{20,}\b/g, replacement: "$1-[REDACTED]" },
+  {
+    pattern: /\bsk-ant-[a-zA-Z0-9]{20,}\b/g,
+    replacement: "sk-ant-[REDACTED]",
+  },
+  {
+    pattern: /\b(ghp|gho|ghu|ghs|ghr)_[a-zA-Z0-9]{36,}\b/g,
+    replacement: "$1_[REDACTED]",
+  },
+  {
+    pattern: /\b(xox[abpsr]?)-[a-zA-Z0-9-]{20,}\b/g,
+    replacement: "$1-[REDACTED]",
+  },
+  {
+    pattern: /Bearer\s+[a-zA-Z0-9._-]{20,}/g,
+    replacement: "Bearer [REDACTED]",
+  },
+  { pattern: /\bAIza[0-9A-Za-z_-]{35}\b/g, replacement: "[REDACTED]" },
+  { pattern: /\bAKIA[0-9A-Z]{16}\b/g, replacement: "[REDACTED]" },
+];
+
+export function redactSecrets(text: string): string {
+  for (const { pattern, replacement } of SECRET_REDACTION_PATTERNS) {
+    text = text.replace(pattern, replacement);
+  }
+  return text;
+}
+
 /**
  * A sink that routes client logs to per-plugin files based on the
  * third element of the log category: ["bab", "client", pluginId].
+ * Secrets are redacted from the log output before writing.
  */
 function createPerClientFileSink(): Sink & Disposable {
   const formatter = getJsonLinesFormatter();
@@ -75,7 +108,7 @@ function createPerClientFileSink(): Sink & Disposable {
       streams.set(pluginId, stream);
     }
 
-    stream.write(formatter(record));
+    stream.write(redactSecrets(formatter(record)));
   };
 
   const dispose = (): void => {

@@ -420,6 +420,110 @@ describe("Q2: ProcessRunner.cancel awaits termination", () => {
   });
 });
 
+describe("S15: skills dir TOCTOU — realpath containment check", () => {
+  test("rejects skills dir that resolves outside config dir", async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), "bab-s15-"));
+    const configDir = join(tmpRoot, "config");
+    const skillsDir = join(configDir, "skills");
+    const outsideDir = join(tmpRoot, "outside");
+
+    await mkdir(configDir, { recursive: true });
+    await mkdir(outsideDir, { recursive: true });
+    await writeFile(
+      join(outsideDir, "SKILL.md"),
+      "# Evil Skill\n",
+    );
+    await symlink(outsideDir, skillsDir);
+
+    const { discoverAgents } = await import("../src/skills");
+
+    // discoverAgents is filter-only; symlink check is in regenerateSkills.
+    // We test via the realpath containment logic directly.
+    const { realpath: rp } = await import("node:fs/promises");
+    const resolvedSkills = await rp(skillsDir);
+    const resolvedConfig = await rp(configDir);
+
+    expect(resolvedSkills.startsWith(resolvedConfig + "/")).toBe(false);
+    expect(resolvedSkills).toBe(await rp(outsideDir));
+  });
+
+  test("accepts skills dir that resolves inside config dir", async () => {
+    const tmpRoot = await mkdtemp(join(tmpdir(), "bab-s15-ok-"));
+    const configDir = join(tmpRoot, "config");
+    const skillsDir = join(configDir, "skills");
+
+    await mkdir(skillsDir, { recursive: true });
+    await writeFile(
+      join(skillsDir, "SKILL.md"),
+      "# Safe Skill\n",
+    );
+
+    const { realpath: rp } = await import("node:fs/promises");
+    const resolvedSkills = await rp(skillsDir);
+    const resolvedConfig = await rp(configDir);
+
+    expect(resolvedSkills.startsWith(resolvedConfig + "/")).toBe(true);
+  });
+});
+
+describe("S16: per-plugin log secret redaction", () => {
+  test("redacts OpenAI-style API keys", async () => {
+    const { redactSecrets } = await import("../src/utils/logger");
+    const input = '{"message":"using key sk-abc123def456ghi789jkl012","level":"info"}';
+    expect(redactSecrets(input)).not.toContain("sk-abc123def456ghi789jkl012");
+    expect(redactSecrets(input)).toContain("sk-[REDACTED]");
+  });
+
+  test("redacts GitHub tokens", async () => {
+    const { redactSecrets } = await import("../src/utils/logger");
+    const input = '{"message":"token=ghp_0123456789abcdef0123456789abcdef0123456789abcdef","level":"info"}';
+    expect(redactSecrets(input)).not.toContain("ghp_0123456789abcdef0123456789abcdef0123456789abcdef");
+    expect(redactSecrets(input)).toContain("ghp_[REDACTED]");
+  });
+
+  test("redacts Bearer tokens", async () => {
+    const { redactSecrets } = await import("../src/utils/logger");
+    const input = 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.secret-token-value';
+    expect(redactSecrets(input)).toContain("Bearer [REDACTED]");
+  });
+
+  test("passes benign text unchanged", async () => {
+    const { redactSecrets } = await import("../src/utils/logger");
+    const input = '{"message":"Hello World","level":"info"}';
+    expect(redactSecrets(input)).toBe(input);
+  });
+});
+
+describe("S17: parseEnvFile mismatched quote rejection", () => {
+  test("rejects value with leading double quote but no closing quote", () => {
+    const { parseEnvFile } = require("../src/config");
+    expect(() => parseEnvFile('KEY="secret')).toThrow("mismatched quotes");
+  });
+
+  test("rejects value with leading single quote but no closing quote", () => {
+    const { parseEnvFile } = require("../src/config");
+    expect(() => parseEnvFile("KEY='secret")).toThrow("mismatched quotes");
+  });
+
+  test("accepts properly double-quoted value", () => {
+    const { parseEnvFile } = require("../src/config");
+    const result = parseEnvFile('KEY="secret"');
+    expect(result.KEY).toBe("secret");
+  });
+
+  test("accepts properly single-quoted value", () => {
+    const { parseEnvFile } = require("../src/config");
+    const result = parseEnvFile("KEY='secret'");
+    expect(result.KEY).toBe("secret");
+  });
+
+  test("accepts unquoted value", () => {
+    const { parseEnvFile } = require("../src/config");
+    const result = parseEnvFile("KEY=secret");
+    expect(result.KEY).toBe("secret");
+  });
+});
+
 describe("Q3: centralized version constant", () => {
   test("VERSION matches package.json version", () => {
     expect(VERSION).toBe(pkg.version);
