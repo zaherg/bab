@@ -1,4 +1,4 @@
-import { readdir, stat } from "node:fs/promises";
+import { readdir, realpath, stat } from "node:fs/promises";
 import type { Dirent } from "node:fs";
 import { join } from "node:path";
 
@@ -15,6 +15,7 @@ export async function discoverPluginDirectories(
     return [];
   }
 
+  const realPluginsRoot = await realpath(pluginsDirectory);
   const discoveredPlugins: DiscoveredPlugin[] = [];
 
   for (const entry of entries) {
@@ -23,6 +24,14 @@ export async function discoverPluginDirectories(
     }
 
     const directory = join(pluginsDirectory, entry.name);
+
+    const realDirectory = await realpath(directory);
+    if (
+      realDirectory !== realPluginsRoot &&
+      !realDirectory.startsWith(`${realPluginsRoot}/`)
+    ) {
+      continue;
+    }
     const manifestPath = join(directory, "manifest.yaml");
     const adapterPath = join(directory, "adapter.ts");
 

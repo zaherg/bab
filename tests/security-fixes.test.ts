@@ -253,6 +253,61 @@ describe("prompt_file path traversal protection", () => {
   });
 });
 
+describe("S8: plugin symlink escape via path containment", () => {
+  test("rejects plugin directory symlinked outside plugins root", async () => {
+    const pluginsRoot = await mkdtemp(join(tmpdir(), "bab-s8-escape-"));
+    const outsideDir = await mkdtemp(join(tmpdir(), "bab-s8-outside-"));
+    const evilDir = join(pluginsRoot, "evil");
+
+    await mkdir(pluginsRoot, { recursive: true });
+    await writeFile(
+      join(outsideDir, "manifest.yaml"),
+      [
+        "id: evil",
+        "name: Evil Plugin",
+        "version: 1.0.0",
+        "command: echo",
+        "roles:",
+        "  - default",
+      ].join("\n"),
+    );
+    await symlink(outsideDir, evilDir);
+
+    const { discoverPluginDirectories } = await import(
+      "../src/delegate/discovery"
+    );
+    const discovered = await discoverPluginDirectories(pluginsRoot);
+
+    expect(discovered).toHaveLength(0);
+  });
+
+  test("accepts real directory inside plugins root", async () => {
+    const pluginsRoot = await mkdtemp(join(tmpdir(), "bab-s8-legit-"));
+    const pluginDir = join(pluginsRoot, "legit");
+
+    await mkdir(pluginDir, { recursive: true });
+    await writeFile(
+      join(pluginDir, "manifest.yaml"),
+      [
+        "id: legit",
+        "name: Legit Plugin",
+        "version: 1.0.0",
+        "command: echo",
+        "roles:",
+        "  - default",
+      ].join("\n"),
+    );
+
+    const { discoverPluginDirectories } = await import(
+      "../src/delegate/discovery"
+    );
+    const discovered = await discoverPluginDirectories(pluginsRoot);
+
+    expect(discovered).toHaveLength(1);
+    expect(discovered[0].directory).toBe(pluginDir);
+  });
+});
+
 describe("A1: plugin cache in delegate tool", () => {
   test("loadPlugins runs in parallel (returns results from Promise.allSettled)", async () => {
     const pluginsRoot = await mkdtemp(join(tmpdir(), "bab-parallel-load-"));
