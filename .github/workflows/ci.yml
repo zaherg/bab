@@ -34,6 +34,9 @@ jobs:
       - name: Generate bundled plugins manifest
         run: bun run bundle:plugins
 
+      - name: Format generated files
+        run: bun run format
+
       - name: Lint
         run: bun run lint
 
