@@ -1,6 +1,6 @@
 .DS_Store
 .mcp.json
-.agent-os/
+.agents/
 .claude/
 .serena/
 CLAUDE.md

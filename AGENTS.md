@@ -26,18 +26,16 @@ Bab (باب) — TypeScript MCP server (Bun runtime) replacing pal-mcp-server.
   - Work delegated via bab tools (`delegate`, `chat`, `consensus`, `codereview`, `thinkdeep`, etc.)
   - Reviews or analysis routed through a plugin model (e.g. `copilot/gpt-4`, `codex/o3`)
   - **Before every commit**, review which bab tools (or any MCP tools) were called in the session and which agents/models they routed through. Add a trailer only for agents that **actually produced output** — not for models that failed, were unavailable, or didn't exist.
-  - Example trailers:
-    - `Co-authored-by: claude <claude@anthropic.com>`
-    - `Co-authored-by: codex <codex@openai.com>`
-    - `Co-authored-by: copilot <copilot@github.com>`
   - Use the agent's name and official email. If the agent is not listed above, use `<agent-name> <agent-name>@<provider-domain>`.
 
 ### Git worktrees for parallel work
-- **Use `git worktree`** when working on two independent tasks simultaneously (tasks with no shared dependencies).
+- **Use `wt`** when working on two independent tasks simultaneously (tasks with no shared dependencies).
+- **Use `wt --help`** when you need to know more about the tool.
 - Example: M4-T01 (Copilot research) and M5-T01 (OpenCode research) can run in parallel worktrees.
-- Worktree location: `../bab-wt-<branch>` (sibling to project root).
-- Create: `git worktree add ../bab-wt-<branch> -b <branch>`
-- Remove after merge: `git worktree remove ../bab-wt-<branch>`
+- Worktree location: `/Users/zaher/Code/worktree/bab`.
+- Create: `wt switch <branch> --create`
+- Merge: `wt merge <branch>`
+- Remove after merge: `wt remove <branch>`
 - **Do NOT use worktrees for tasks that share deps or modify the same files** — use sequential branches instead.
 
 ## Code Conventions (remove after M1 — infer from codebase)
