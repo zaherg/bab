@@ -35,12 +35,6 @@ That name fits the project because Bab acts as a gateway between MCP clients and
 
 ## Install
 
-### Homebrew (macOS / Linux)
-
-```bash
-brew install babmcp/tap/bab
-```
-
 ### Install script (macOS / Linux)
 
 ```bash
