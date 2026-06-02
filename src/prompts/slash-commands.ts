@@ -118,7 +118,9 @@ function buildPromptText(entry: PromptEntry, userInput: string): string {
       return [
         `Call the \`${entry.toolName}\` tool to perform: ${entry.description}`,
         "",
-        input ? `Context from the user: ${input}` : "Ask the user for context about what to analyze.",
+        input
+          ? `Context from the user: ${input}`
+          : "Ask the user for context about what to analyze.",
         "",
         "Set step_number: 1, total_steps: 3 (adjust based on scope), next_step_required: true.",
         "Use a descriptive step name. If the user mentions files, include them in relevant_files.",
@@ -130,7 +132,9 @@ function buildPromptText(entry: PromptEntry, userInput: string): string {
       return [
         `Call the \`${entry.toolName}\` tool for multi-model consensus.`,
         "",
-        input ? `Topic: ${input}` : "Ask the user what topic needs multi-model consensus.",
+        input
+          ? `Topic: ${input}`
+          : "Ask the user what topic needs multi-model consensus.",
         "",
         "Set step_number: 1, total_steps: 3, next_step_required: true.",
         "If the user requests specific models, include them. Otherwise let bab auto-select.",
@@ -141,10 +145,12 @@ function buildPromptText(entry: PromptEntry, userInput: string): string {
       return [
         `Call the \`${entry.toolName}\` tool to delegate a task to an external CLI agent.`,
         "",
-        input ? `Task: ${input}` : "Ask the user what task to delegate and to which agent.",
+        input
+          ? `Task: ${input}`
+          : "Ask the user what task to delegate and to which agent.",
         "",
         "If the user names an agent (codex, copilot, opencode, claude), pass it as cli_name.",
-        "Use role: \"default\" unless the user specifies otherwise.",
+        'Use role: "default" unless the user specifies otherwise.',
       ].join("\n");
   }
 }

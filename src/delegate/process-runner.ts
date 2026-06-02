@@ -4,15 +4,11 @@ const MAX_CAPTURE_BYTES = 1_000_000;
 
 const RAW_CONCURRENCY = Number(process.env.BAB_MAX_CONCURRENT_PROCESSES);
 const DEFAULT_MAX_CONCURRENT =
-  Number.isFinite(RAW_CONCURRENCY) && RAW_CONCURRENCY > 0
-    ? RAW_CONCURRENCY
-    : 5;
+  Number.isFinite(RAW_CONCURRENCY) && RAW_CONCURRENCY > 0 ? RAW_CONCURRENCY : 5;
 
 const RAW_TIMEOUT = Number(process.env.BAB_CLI_TIMEOUT_MS);
 export const DEFAULT_TIMEOUT_MS =
-  Number.isFinite(RAW_TIMEOUT) && RAW_TIMEOUT > 0
-    ? RAW_TIMEOUT
-    : 300_000;
+  Number.isFinite(RAW_TIMEOUT) && RAW_TIMEOUT > 0 ? RAW_TIMEOUT : 300_000;
 
 export interface ProcessRunOptions {
   args?: string[];

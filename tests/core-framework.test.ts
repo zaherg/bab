@@ -1,6 +1,5 @@
 import { describe, expect, test } from "bun:test";
 import { mkdtemp, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { z } from "zod/v4";
@@ -34,7 +33,11 @@ function createConfig(env: Record<string, string> = {}): BabConfig {
       pluginsDir: "/tmp/.config/bab/plugins",
       promptsDir: "/tmp/.config/bab/prompts",
     },
-    persistence: { enabled: false, enabledTools: new Set(), disabledTools: new Set() },
+    persistence: {
+      enabled: false,
+      enabledTools: new Set(),
+      disabledTools: new Set(),
+    },
   };
 }
 
@@ -93,7 +96,9 @@ describe("simple tool framework", () => {
         [
           `Prompt: ${request.prompt}`,
           historyText ? `History:\n${historyText}` : "",
-          fileContext.embedded_text ? `Files:\n${fileContext.embedded_text}` : "",
+          fileContext.embedded_text
+            ? `Files:\n${fileContext.embedded_text}`
+            : "",
         ]
           .filter(Boolean)
           .join("\n\n"),
@@ -111,44 +116,46 @@ describe("simple tool framework", () => {
       name: "chat",
       systemPrompt: "system",
     });
-    const tempDirectory = await mkdtemp(join(process.cwd(), ".bab-test-framework-"));
+    const tempDirectory = await mkdtemp(
+      join(process.cwd(), ".bab-test-framework-"),
+    );
     const sourceFile = join(tempDirectory, "example.ts");
 
     await writeFile(sourceFile, "export const answer = 42;\n");
 
     try {
-    const firstResult = await tool.execute({
-      absolute_file_paths: [sourceFile],
-      prompt: "Inspect the file",
-    });
+      const firstResult = await tool.execute({
+        absolute_file_paths: [sourceFile],
+        prompt: "Inspect the file",
+      });
 
-    expect(firstResult.ok).toBeTrue();
+      expect(firstResult.ok).toBeTrue();
 
-    if (!firstResult.ok) {
-      throw new Error("Expected successful first result");
-    }
+      if (!firstResult.ok) {
+        throw new Error("Expected successful first result");
+      }
 
-    const firstPayload = JSON.parse(firstResult.value.content ?? "{}");
-    const firstContinuationId =
-      firstResult.value.continuation_offer?.continuation_id ??
-      String(firstPayload.continuation_id);
+      const firstPayload = JSON.parse(firstResult.value.content ?? "{}");
+      const firstContinuationId =
+        firstResult.value.continuation_offer?.continuation_id ??
+        String(firstPayload.continuation_id);
 
-    expect(String(calls[0]?.prompt)).toContain(`FILE: ${sourceFile}`);
-    expect(firstContinuationId.length).toBeGreaterThan(0);
+      expect(String(calls[0]?.prompt)).toContain(`FILE: ${sourceFile}`);
+      expect(firstContinuationId.length).toBeGreaterThan(0);
 
-    const secondResult = await tool.execute({
-      continuation_id: firstContinuationId,
-      prompt: "Continue the discussion",
-    });
+      const secondResult = await tool.execute({
+        continuation_id: firstContinuationId,
+        prompt: "Continue the discussion",
+      });
 
-    expect(secondResult.ok).toBeTrue();
+      expect(secondResult.ok).toBeTrue();
 
-    if (!secondResult.ok) {
-      throw new Error("Expected successful second result");
-    }
+      if (!secondResult.ok) {
+        throw new Error("Expected successful second result");
+      }
 
-    expect(calls).toHaveLength(2);
-    expect(String(calls[1]?.prompt)).toContain("ASSISTANT\nfirst-response");
+      expect(calls).toHaveLength(2);
+      expect(String(calls[1]?.prompt)).toContain("ASSISTANT\nfirst-response");
     } finally {
       const { rm } = await import("node:fs/promises");
       await rm(tempDirectory, { force: true, recursive: true });
@@ -170,7 +177,12 @@ describe("workflow framework", () => {
         providerRegistry,
       },
       description: "Test workflow tool",
-      formatPayload: ({ aiResult, continuationId, expertAnalysis, request }) => ({
+      formatPayload: ({
+        aiResult,
+        continuationId,
+        expertAnalysis,
+        request,
+      }) => ({
         continuation_id: continuationId,
         expert_analysis: expertAnalysis?.text,
         response: aiResult.text,
@@ -458,7 +470,9 @@ describe("embedFiles", () => {
   });
 
   test("deduplicates paths", async () => {
-    const tempDirectory = await mkdtemp(join(process.cwd(), ".bab-test-dedup-"));
+    const tempDirectory = await mkdtemp(
+      join(process.cwd(), ".bab-test-dedup-"),
+    );
     const filePath = join(tempDirectory, "dup.ts");
 
     try {
@@ -468,10 +482,7 @@ describe("embedFiles", () => {
         config: createConfig({ OPENAI_API_KEY: "key" }),
       });
       const model = await selectModel(registry);
-      const result = await embedFiles(
-        [filePath, filePath, filePath],
-        model,
-      );
+      const result = await embedFiles([filePath, filePath, filePath], model);
 
       expect(result.embedded_files).toHaveLength(1);
     } finally {

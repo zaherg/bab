@@ -1,16 +1,19 @@
-import { realpath, stat } from "node:fs/promises";
 import { realpathSync } from "node:fs";
+import { realpath, stat } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { isAbsolute, resolve } from "node:path";
 
 import { z } from "zod/v4";
 
 import {
-  ConversationStore,
-  MAX_THREAD_TURNS,
+  type ConversationStore,
   type ConversationThread,
+  MAX_THREAD_TURNS,
 } from "../memory/conversations";
-import type { GenerateTextResult, ProviderRegistry } from "../providers/registry";
+import type {
+  GenerateTextResult,
+  ProviderRegistry,
+} from "../providers/registry";
 import type { ModelInfo, Result, ToolError, ToolOutput } from "../types";
 import { logger } from "../utils/logger";
 import { estimateTokenCount } from "../utils/tokens";
@@ -18,12 +21,7 @@ import { estimateTokenCount } from "../utils/tokens";
 const MAX_EMBEDDED_FILE_TOKENS = 50_000;
 const MAX_HISTORY_TURNS = 8;
 
-const ALLOWED_HOME_DIRS = [
-  ".claude",
-  ".codex",
-  ".copilot",
-  ".opencode",
-];
+const ALLOWED_HOME_DIRS = [".claude", ".codex", ".copilot", ".opencode"];
 
 function isAllowedPath(realPath: string): boolean {
   const cwd = realpathSync(process.cwd());
@@ -107,7 +105,9 @@ export const BaseWorkflowInputSchema = z.object({
     ),
   next_step_required: z
     .boolean()
-    .describe("True if more steps are needed after this one. False on the final step."),
+    .describe(
+      "True if more steps are needed after this one. False on the final step.",
+    ),
   relevant_context: z.array(z.string().min(1)).optional(),
   relevant_files: FilePathsSchema,
   step: z.string().min(1),
@@ -170,8 +170,7 @@ export function createJsonToolOutput(
       ? {
           continuation_id: continuationId,
           note: "Reuse this continuation_id to continue the same tool thread.",
-          remaining_turns:
-            remainingTurns ?? Math.max(0, MAX_THREAD_TURNS - 1),
+          remaining_turns: remainingTurns ?? Math.max(0, MAX_THREAD_TURNS - 1),
         }
       : undefined,
     metadata,
@@ -179,7 +178,9 @@ export function createJsonToolOutput(
   };
 }
 
-export function createSuccessToolResult(value: ToolOutput): ToolExecutionResult {
+export function createSuccessToolResult(
+  value: ToolOutput,
+): ToolExecutionResult {
   return {
     ok: true,
     value,
@@ -193,7 +194,10 @@ export async function selectModel(
   if (requestedModel) {
     const exactModel = await providerRegistry.getModelInfo(requestedModel);
 
-    if (exactModel && providerRegistry.isProviderConfigured(exactModel.provider)) {
+    if (
+      exactModel &&
+      providerRegistry.isProviderConfigured(exactModel.provider)
+    ) {
       return exactModel;
     }
 
@@ -230,7 +234,9 @@ export async function embedFiles(
   let totalTokens = 0;
 
   for (const rawPath of uniquePaths) {
-    const filePath = isAbsolute(rawPath) ? rawPath : resolve(process.cwd(), rawPath);
+    const filePath = isAbsolute(rawPath)
+      ? rawPath
+      : resolve(process.cwd(), rawPath);
 
     let stats;
     let resolvedPath: string;
@@ -296,13 +302,11 @@ export async function prepareConversation(
   const existingThread = continuationId
     ? await conversationStore.resolveContinuation(continuationId)
     : undefined;
-  const thread = existingThread ?? (await conversationStore.createThread(continuationId));
+  const thread =
+    existingThread ?? (await conversationStore.createThread(continuationId));
   const recentTurns = thread.turns.slice(-MAX_HISTORY_TURNS);
   const historyText = recentTurns
-    .map(
-      (turn) =>
-        `[${turn.tool_name} @ ${turn.created_at}]\n${turn.content}`,
-    )
+    .map((turn) => `[${turn.tool_name} @ ${turn.created_at}]\n${turn.content}`)
     .join("\n\n");
 
   return {
@@ -345,7 +349,9 @@ export function remainingConversationTurns(
   return Math.max(0, MAX_THREAD_TURNS - thread.turns.length);
 }
 
-export function serializeUsage(usage: GenerateTextResult["usage"]): Record<string, unknown> {
+export function serializeUsage(
+  usage: GenerateTextResult["usage"],
+): Record<string, unknown> {
   return {
     input_tokens: usage.input_tokens,
     output_tokens: usage.output_tokens,

@@ -1,7 +1,6 @@
 import { join } from "node:path";
-
-import { assertPathContainment } from "../utils/path";
 import { parseEnvFile } from "../config";
+import { assertPathContainment } from "../utils/path";
 
 /** Vars that can inject code into spawned processes. */
 const RUNTIME_INJECTION_VARS = [

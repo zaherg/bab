@@ -26,7 +26,8 @@ describe("investigation tools", () => {
 
   afterAll(async () => {
     try {
-      if (analysisDirectory) await rm(analysisDirectory, { recursive: true, force: true });
+      if (analysisDirectory)
+        await rm(analysisDirectory, { recursive: true, force: true });
     } catch {}
   });
 
@@ -81,10 +82,15 @@ describe("investigation tools", () => {
 
   test("analyze embeds files and reports analysis metadata", async () => {
     const calls: Array<Record<string, unknown>> = [];
-    analysisDirectory = await mkdtemp(join(process.cwd(), ".bab-test-analyze-"));
+    analysisDirectory = await mkdtemp(
+      join(process.cwd(), ".bab-test-analyze-"),
+    );
     const analyzedFile = join(analysisDirectory, "module.ts");
 
-    await writeFile(analyzedFile, "export const service = { enabled: true };\n");
+    await writeFile(
+      analyzedFile,
+      "export const service = { enabled: true };\n",
+    );
 
     const tool = createAnalyzeTool({
       conversationStore: new ConversationStore(),
@@ -113,7 +119,8 @@ describe("investigation tools", () => {
     });
     const result = await tool.execute({
       analysis_type: "architecture",
-      findings: "The module is cohesive but tightly coupled to configuration state.",
+      findings:
+        "The module is cohesive but tightly coupled to configuration state.",
       next_step_required: false,
       output_format: "actionable",
       relevant_files: [analyzedFile],
@@ -164,7 +171,8 @@ describe("investigation tools", () => {
       }),
     });
     const result = await tool.execute({
-      findings: "The call chain starts in the controller and terminates in the repository.",
+      findings:
+        "The call chain starts in the controller and terminates in the repository.",
       next_step_required: false,
       step: "Summarize the dependency path",
       step_number: 1,

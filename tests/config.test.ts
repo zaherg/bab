@@ -3,7 +3,11 @@ import { mkdtemp, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { ensureConfigDirectories, getConfigPaths, parseEnvFile } from "../src/config";
+import {
+  ensureConfigDirectories,
+  getConfigPaths,
+  parseEnvFile,
+} from "../src/config";
 
 describe("config paths", () => {
   test("uses ~/.config/bab under the provided home directory", () => {

@@ -195,9 +195,7 @@ describe("plugin install command", () => {
 
     expect(metadata.plugin_id).toBe("claude");
     expect(metadata.plugin_subdir).toBe(".");
-    expect(metadata.source_original).toBe(
-      "git@github.com:babmcp/plugins.git",
-    );
+    expect(metadata.source_original).toBe("git@github.com:babmcp/plugins.git");
     expect(metadata.source_url).toBe(`file://${repositoryDirectory}`);
     expect(await readdir(tempParent)).toEqual([]);
   });

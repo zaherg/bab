@@ -22,9 +22,7 @@ export const ToolOutputStatusSchema = z.enum(toolOutputStatusValues);
 export const ToolContentTypeSchema = z.enum(toolContentTypeValues);
 
 export const ContinuationOfferSchema = z.object({
-  continuation_id: z
-    .string()
-    .min(1, "continuation_id must not be empty"),
+  continuation_id: z.string().min(1, "continuation_id must not be empty"),
   note: z.string().min(1, "note must not be empty"),
   remaining_turns: z
     .number()

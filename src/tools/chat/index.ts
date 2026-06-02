@@ -37,9 +37,7 @@ type ChatRequest = z.infer<typeof ChatInputSchema>;
 
 async function assertWorkingDirectory(path: string): Promise<void> {
   if (!isAbsolute(path)) {
-    throw new Error(
-      "working_directory_absolute_path must be an absolute path",
-    );
+    throw new Error("working_directory_absolute_path must be an absolute path");
   }
 
   const workingDirectoryStats = await stat(path).catch(() => undefined);
@@ -51,7 +49,11 @@ async function assertWorkingDirectory(path: string): Promise<void> {
   }
 }
 
-function buildChatPrompt(historyText: string, request: ChatRequest, embeddedText: string): string {
+function buildChatPrompt(
+  historyText: string,
+  request: ChatRequest,
+  embeddedText: string,
+): string {
   return [
     "General development request:",
     request.prompt,
@@ -74,11 +76,7 @@ export function createChatTool(context: ToolContext) {
     buildPrompt: async ({ fileContext, historyText, request }) => {
       await assertWorkingDirectory(request.working_directory_absolute_path);
 
-      return buildChatPrompt(
-        historyText,
-        request,
-        fileContext.embedded_text,
-      );
+      return buildChatPrompt(historyText, request, fileContext.embedded_text);
     },
     context,
     description:

@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-
-import { ALWAYS_LOADED_TOOLS } from "../src/tools/manifest";
 import { CORE_TOOL_NAMES, LAZY_MODE_TOOL_NAMES } from "../src/bootstrap";
+import { ALWAYS_LOADED_TOOLS } from "../src/tools/manifest";
 import { type BabTestHarness, createBabTestHarness } from "./harness";
 
 // ---------------------------------------------------------------------------
@@ -79,8 +78,13 @@ describe("Lazy tool loading — integration", () => {
 
     const [content] = result.content;
     if (!content || content.type !== "text") throw new Error("Expected text");
-    const payload = JSON.parse(content.text) as { status: string; content: string };
-    const inner = JSON.parse(payload.content) as { tools: Array<{ name: string; loaded: boolean; category: string }> };
+    const payload = JSON.parse(content.text) as {
+      status: string;
+      content: string;
+    };
+    const inner = JSON.parse(payload.content) as {
+      tools: Array<{ name: string; loaded: boolean; category: string }>;
+    };
 
     // All CORE_TOOL_NAMES should appear in the listing
     const listedNames = new Set(inner.tools.map((t) => t.name));
@@ -116,7 +120,10 @@ describe("Lazy tool loading — integration", () => {
     expect(activateResult.isError).toBeFalse();
     const [content] = activateResult.content;
     if (!content || content.type !== "text") throw new Error("Expected text");
-    const payload = JSON.parse(content.text) as { status: string; content: string };
+    const payload = JSON.parse(content.text) as {
+      status: string;
+      content: string;
+    };
     const inner = JSON.parse(payload.content) as {
       loaded: string[];
       already_loaded: string[];
@@ -143,7 +150,10 @@ describe("Lazy tool loading — integration", () => {
     expect(result.isError).toBeFalse();
     const [content] = result.content;
     if (!content || content.type !== "text") throw new Error("Expected text");
-    const payload = JSON.parse(content.text) as { status: string; content: string };
+    const payload = JSON.parse(content.text) as {
+      status: string;
+      content: string;
+    };
     const inner = JSON.parse(payload.content) as { loaded: string[] };
 
     expect(inner.loaded).toContain("codereview");
@@ -173,7 +183,10 @@ describe("Lazy tool loading — integration", () => {
     activeHarnesses.push(harness);
 
     // version is always loaded — use it as a sanity check first
-    const versionResult = await harness.callTool({ name: "version", arguments: {} });
+    const versionResult = await harness.callTool({
+      name: "version",
+      arguments: {},
+    });
     expect(versionResult.isError).toBeFalse();
 
     // challenge is NOT always loaded — calling it should auto-load and succeed
@@ -185,7 +198,10 @@ describe("Lazy tool loading — integration", () => {
     // but it should NOT fail with "unknown tool" — auto-load worked
     const [content] = challengeResult.content;
     if (!content || content.type !== "text") throw new Error("Expected text");
-    const parsed = JSON.parse(content.text) as { type?: string; message?: string };
+    const parsed = JSON.parse(content.text) as {
+      type?: string;
+      message?: string;
+    };
     expect(parsed.type).not.toBe("not_found");
 
     // After auto-load, challenge should now appear in tool list
@@ -218,18 +234,27 @@ describe("Lazy tool loading — integration", () => {
     const result = await harness.callTool({ name: "tools", arguments: {} });
     const [content] = result.content;
     if (!content || content.type !== "text") throw new Error("Expected text");
-    const payload = JSON.parse(content.text) as { status: string; content: string };
-    const inner = JSON.parse(payload.content) as { tools: Array<{ name: string }> };
+    const payload = JSON.parse(content.text) as {
+      status: string;
+      content: string;
+    };
+    const inner = JSON.parse(payload.content) as {
+      tools: Array<{ name: string }>;
+    };
 
     const listedNames = new Set(inner.tools.map((t) => t.name));
     expect(listedNames.has("chat")).toBeFalse();
     expect(listedNames.has("codereview")).toBeFalse();
 
     // Trying to auto-load a disabled tool should return not_found
-    const callResult = await harness.callTool({ name: "chat", arguments: { prompt: "hi" } });
+    const callResult = await harness.callTool({
+      name: "chat",
+      arguments: { prompt: "hi" },
+    });
     expect(callResult.isError).toBeTrue();
     const [callContent] = callResult.content;
-    if (!callContent || callContent.type !== "text") throw new Error("Expected text");
+    if (!callContent || callContent.type !== "text")
+      throw new Error("Expected text");
     const callParsed = JSON.parse(callContent.text) as { type: string };
     expect(callParsed.type).toBe("not_found");
   });
@@ -266,7 +291,15 @@ describe("Tool load failure isolation", () => {
       name: "good-tool",
       description: "Always works",
       inputSchema: z.object({}),
-      execute: async () => ({ ok: true as const, value: { content: "ok", content_type: "text" as const, status: "success" as const, metadata: {} } }),
+      execute: async () => ({
+        ok: true as const,
+        value: {
+          content: "ok",
+          content_type: "text" as const,
+          status: "success" as const,
+          metadata: {},
+        },
+      }),
     };
 
     // Add a bad entry (throws) and good entry to the manifest
@@ -276,7 +309,9 @@ describe("Tool load failure isolation", () => {
       description: "Throws on load",
       category: "info",
       persist: "never",
-      factory: () => { throw new Error("factory explosion"); },
+      factory: () => {
+        throw new Error("factory explosion");
+      },
     });
     updated.set("good-tool", {
       name: "good-tool",
@@ -323,7 +358,9 @@ describe("Context-size benchmark", () => {
     const eagerBytes = Buffer.byteLength(JSON.stringify(eagerTools));
     const lazyBytes = Buffer.byteLength(JSON.stringify(lazyTools));
 
-    console.log(`Schema payload — eager: ${eagerBytes} bytes, lazy: ${lazyBytes} bytes`);
+    console.log(
+      `Schema payload — eager: ${eagerBytes} bytes, lazy: ${lazyBytes} bytes`,
+    );
     expect(lazyBytes).toBeLessThan(eagerBytes * 0.5);
   });
 });

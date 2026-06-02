@@ -68,7 +68,9 @@ describe("chat tool", () => {
       modelGateway: {} as never,
       providerRegistry,
     });
-    const workingDirectory = await mkdtemp(join(process.cwd(), ".bab-test-chat-tool-"));
+    const workingDirectory = await mkdtemp(
+      join(process.cwd(), ".bab-test-chat-tool-"),
+    );
     tempDirs.push(workingDirectory);
     const sourceFile = join(workingDirectory, "context.ts");
 
@@ -87,7 +89,9 @@ describe("chat tool", () => {
     }
 
     expect(calls).toHaveLength(1);
-    expect(String(calls[0]?.prompt)).toContain(`Working directory: ${workingDirectory}`);
+    expect(String(calls[0]?.prompt)).toContain(
+      `Working directory: ${workingDirectory}`,
+    );
     expect(String(calls[0]?.prompt)).toContain(`FILE: ${sourceFile}`);
 
     const payload = JSON.parse(result.value.content ?? "{}");

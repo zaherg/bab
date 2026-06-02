@@ -8,14 +8,14 @@ import {
   createSuccessToolResult,
   createToolError,
   embedFiles,
+  type FileEmbeddingResult,
   prepareConversation,
-  remainingConversationTurns,
   recordConversationTurn,
+  remainingConversationTurns,
   selectModel,
   serializeUsage,
-  type FileEmbeddingResult,
-  type ToolExecutionResult,
   type ToolContext,
+  type ToolExecutionResult,
 } from "../base";
 
 export interface WorkflowRequestLike {
@@ -198,9 +198,10 @@ export class WorkflowRunner<
         `ASSISTANT STEP ${parsedRequest.step_number}\n${assistantRecord}`,
       );
 
-      const storedThread = await this.config.context.conversationStore.getThread(
-        conversation.continuationId,
-      );
+      const storedThread =
+        await this.config.context.conversationStore.getThread(
+          conversation.continuationId,
+        );
       const toolOutput: ToolOutput = createJsonToolOutput(
         payload,
         {
@@ -236,6 +237,8 @@ export class WorkflowRunner<
       return false;
     }
 
-    return request.confidence === "certain" || request.next_step_required === false;
+    return (
+      request.confidence === "certain" || request.next_step_required === false
+    );
   }
 }

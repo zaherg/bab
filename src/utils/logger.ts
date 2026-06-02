@@ -1,17 +1,16 @@
-import { mkdirSync } from "node:fs";
-import { createWriteStream, type WriteStream } from "node:fs";
+import { createWriteStream, mkdirSync, type WriteStream } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { getRotatingFileSink } from "@logtape/file";
 import {
   configure,
   getJsonLinesFormatter,
   getLogger,
   getStreamSink,
-  type LogLevel as LogTapeLevel,
   type LogRecord,
+  type LogLevel as LogTapeLevel,
   type Sink,
 } from "@logtape/logtape";
-import { getRotatingFileSink } from "@logtape/file";
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
@@ -182,7 +181,9 @@ export async function configureLogging(): Promise<void> {
       {
         category: ["bab", "client"],
         lowestLevel: level,
-        sinks: clientLogging ? ["stderr", "clientFile", "errorFile"] : ["stderr", "errorFile"],
+        sinks: clientLogging
+          ? ["stderr", "clientFile", "errorFile"]
+          : ["stderr", "errorFile"],
       },
       {
         category: ["logtape", "meta"],

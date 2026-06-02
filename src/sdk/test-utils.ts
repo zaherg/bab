@@ -1,4 +1,4 @@
-import { DelegateEventSchema, type DelegateEvent } from "../types";
+import { type DelegateEvent, DelegateEventSchema } from "../types";
 
 export interface MockProcessRunnerResult {
   durationMs?: number;

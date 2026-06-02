@@ -1,30 +1,11 @@
+export type { ProcessRunResult } from "../delegate/process-runner";
 export type {
   DelegatePluginAdapter,
   DelegateRunInput,
   LoadedPlugin,
   ResolvedRole,
+  SimpleAdapter,
 } from "../delegate/types";
-export type { SimpleAdapter } from "../delegate/types";
-export type { ProcessRunResult } from "../delegate/process-runner";
-export {
-  assertDelegateEvents,
-  createDoneEvent,
-  createMockProcessRunner,
-} from "./test-utils";
-export {
-  DelegateEventSchema,
-  DoneEventSchema,
-  ErrorEventSchema,
-  OutputEventSchema,
-  PluginCapabilitySchema,
-  PluginManifestSchema,
-  PluginRoleSchema,
-  ProgressEventSchema,
-  RoleDefinitionSchema,
-  ToolActivityEventSchema,
-  ToolErrorSchema,
-  ToolOutputSchema,
-} from "../types";
 export type {
   DelegateEvent,
   DoneEvent,
@@ -39,3 +20,22 @@ export type {
   ToolError,
   ToolOutput,
 } from "../types";
+export {
+  DelegateEventSchema,
+  DoneEventSchema,
+  ErrorEventSchema,
+  OutputEventSchema,
+  PluginCapabilitySchema,
+  PluginManifestSchema,
+  PluginRoleSchema,
+  ProgressEventSchema,
+  RoleDefinitionSchema,
+  ToolActivityEventSchema,
+  ToolErrorSchema,
+  ToolOutputSchema,
+} from "../types";
+export {
+  assertDelegateEvents,
+  createDoneEvent,
+  createMockProcessRunner,
+} from "./test-utils";

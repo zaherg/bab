@@ -1,5 +1,5 @@
-import type { BabConfig } from "../config";
 import { getBundledPluginsRoot } from "../commands/shared";
+import type { BabConfig } from "../config";
 import { discoverPluginDirectories } from "./discovery";
 import { loadPlugins } from "./loader";
 import type { DiscoveredPlugin, LoadedPlugin } from "./types";

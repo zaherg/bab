@@ -2,13 +2,13 @@ import { describe, expect, test } from "bun:test";
 import { z } from "zod/v4";
 
 import {
+  createResultSchema,
   DelegateEventSchema,
   ModelCapabilitiesSchema,
   PluginManifestSchema,
   RoleDefinitionSchema,
   ToolErrorSchema,
   ToolOutputSchema,
-  createResultSchema,
 } from "../src/types";
 
 describe("ToolOutputSchema", () => {

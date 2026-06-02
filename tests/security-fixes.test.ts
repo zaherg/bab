@@ -2,17 +2,19 @@ import { describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-
+import pkg from "../package.json";
+import { parseSource } from "../src/commands/source-parser";
 import { loadConfig } from "../src/config";
 import { loadPlugin, loadPlugins } from "../src/delegate/loader";
 import { ProcessRunner } from "../src/delegate/process-runner";
-import { customProviderBaseUrl, validateCustomApiUrl } from "../src/providers/custom-url";
 import { resolveRole } from "../src/delegate/roles";
 import { InMemoryStorageAdapter } from "../src/memory/memory";
-import { parseSource } from "../src/commands/source-parser";
+import {
+  customProviderBaseUrl,
+  validateCustomApiUrl,
+} from "../src/providers/custom-url";
 import { sanitizeFileEnv } from "../src/utils/env";
 import { VERSION } from "../src/version";
-import pkg from "../package.json";
 
 describe("S2: loadConfig sanitizes file env and process env wins", () => {
   test("process env takes precedence over file env", async () => {
@@ -388,10 +390,7 @@ describe("P3: ProcessRunner output buffer cap", () => {
   test("caps stdout to prevent memory exhaustion", async () => {
     const runner = new ProcessRunner();
     const result = await runner.run("test-cap", {
-      args: [
-        "-e",
-        "for(let i=0;i<500000;i++) process.stdout.write('x');",
-      ],
+      args: ["-e", "for(let i=0;i<500000;i++) process.stdout.write('x');"],
       command: "bun",
       env: { ...process.env } as Record<string, string>,
       timeoutMs: 10_000,
@@ -430,10 +429,7 @@ describe("S15: skills dir TOCTOU — realpath containment check", () => {
 
     await mkdir(configDir, { recursive: true });
     await mkdir(outsideDir, { recursive: true });
-    await writeFile(
-      join(outsideDir, "SKILL.md"),
-      "# Evil Skill\n",
-    );
+    await writeFile(join(outsideDir, "SKILL.md"), "# Evil Skill\n");
     await symlink(outsideDir, skillsDir);
 
     const { discoverAgents } = await import("../src/skills");
@@ -444,7 +440,7 @@ describe("S15: skills dir TOCTOU — realpath containment check", () => {
     const resolvedSkills = await rp(skillsDir);
     const resolvedConfig = await rp(configDir);
 
-    expect(resolvedSkills.startsWith(resolvedConfig + "/")).toBe(false);
+    expect(resolvedSkills.startsWith(`${resolvedConfig}/`)).toBe(false);
     expect(resolvedSkills).toBe(await rp(outsideDir));
   });
 
@@ -454,37 +450,39 @@ describe("S15: skills dir TOCTOU — realpath containment check", () => {
     const skillsDir = join(configDir, "skills");
 
     await mkdir(skillsDir, { recursive: true });
-    await writeFile(
-      join(skillsDir, "SKILL.md"),
-      "# Safe Skill\n",
-    );
+    await writeFile(join(skillsDir, "SKILL.md"), "# Safe Skill\n");
 
     const { realpath: rp } = await import("node:fs/promises");
     const resolvedSkills = await rp(skillsDir);
     const resolvedConfig = await rp(configDir);
 
-    expect(resolvedSkills.startsWith(resolvedConfig + "/")).toBe(true);
+    expect(resolvedSkills.startsWith(`${resolvedConfig}/`)).toBe(true);
   });
 });
 
 describe("S16: per-plugin log secret redaction", () => {
   test("redacts OpenAI-style API keys", async () => {
     const { redactSecrets } = await import("../src/utils/logger");
-    const input = '{"message":"using key sk-abc123def456ghi789jkl012","level":"info"}';
+    const input =
+      '{"message":"using key sk-abc123def456ghi789jkl012","level":"info"}';
     expect(redactSecrets(input)).not.toContain("sk-abc123def456ghi789jkl012");
     expect(redactSecrets(input)).toContain("sk-[REDACTED]");
   });
 
   test("redacts GitHub tokens", async () => {
     const { redactSecrets } = await import("../src/utils/logger");
-    const input = '{"message":"token=ghp_0123456789abcdef0123456789abcdef0123456789abcdef","level":"info"}';
-    expect(redactSecrets(input)).not.toContain("ghp_0123456789abcdef0123456789abcdef0123456789abcdef");
+    const input =
+      '{"message":"token=ghp_0123456789abcdef0123456789abcdef0123456789abcdef","level":"info"}';
+    expect(redactSecrets(input)).not.toContain(
+      "ghp_0123456789abcdef0123456789abcdef0123456789abcdef",
+    );
     expect(redactSecrets(input)).toContain("ghp_[REDACTED]");
   });
 
   test("redacts Bearer tokens", async () => {
     const { redactSecrets } = await import("../src/utils/logger");
-    const input = 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.secret-token-value';
+    const input =
+      "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.secret-token-value";
     expect(redactSecrets(input)).toContain("Bearer [REDACTED]");
   });
 
@@ -533,9 +531,9 @@ describe("S18: custom provider URL validation", () => {
   });
 
   test("rejects RFC1918 private network CUSTOM_API_URL values", () => {
-    expect(() => validateCustomApiUrl("https://192.168.1.10/v1", false)).toThrow(
-      "CUSTOM_API_URL host is not allowed",
-    );
+    expect(() =>
+      validateCustomApiUrl("https://192.168.1.10/v1", false),
+    ).toThrow("CUSTOM_API_URL host is not allowed");
   });
 
   test("allows HTTPS public CUSTOM_API_URL values", () => {

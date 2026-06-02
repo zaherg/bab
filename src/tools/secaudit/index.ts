@@ -4,14 +4,20 @@ import { SECAUDIT_SYSTEM_PROMPT } from "../../prompts/secaudit";
 import type { ToolContext } from "../base";
 import { BaseWorkflowInputSchema } from "../base";
 import {
-  WorkflowRunner,
   type WorkflowPromptContext,
   type WorkflowRequestLike,
+  WorkflowRunner,
 } from "../workflow/runner";
 
 const SecauditInputSchema = BaseWorkflowInputSchema.extend({
   audit_focus: z
-    .enum(["owasp", "compliance", "infrastructure", "dependencies", "comprehensive"])
+    .enum([
+      "owasp",
+      "compliance",
+      "infrastructure",
+      "dependencies",
+      "comprehensive",
+    ])
     .optional(),
   compliance_requirements: z.array(z.string().min(1)).optional(),
   security_scope: z.string().min(1).optional(),
@@ -21,7 +27,8 @@ const SecauditInputSchema = BaseWorkflowInputSchema.extend({
   threat_level: z.enum(["low", "medium", "high", "critical"]).optional(),
 });
 
-type SecauditRequest = z.infer<typeof SecauditInputSchema> & WorkflowRequestLike;
+type SecauditRequest = z.infer<typeof SecauditInputSchema> &
+  WorkflowRequestLike;
 
 function buildSecauditPrompt({
   fileContext,
@@ -45,7 +52,9 @@ function buildSecauditPrompt({
     `Current step:\n${request.step}`,
     `Findings so far:\n${request.findings}`,
     historyText ? `Conversation history:\n${historyText}` : "",
-    fileContext.embedded_text ? `Embedded files:\n${fileContext.embedded_text}` : "",
+    fileContext.embedded_text
+      ? `Embedded files:\n${fileContext.embedded_text}`
+      : "",
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -63,7 +72,13 @@ export function createSecauditTool(context: ToolContext) {
     context,
     description:
       "Performs comprehensive security audit with systematic vulnerability assessment. Use for OWASP Top 10 analysis, compliance evaluation, threat modeling, and security architecture review. Guides through structured security investigation with expert validation.",
-    formatPayload: ({ aiResult, continuationId, expertAnalysis, fileContext, request }) => ({
+    formatPayload: ({
+      aiResult,
+      continuationId,
+      expertAnalysis,
+      fileContext,
+      request,
+    }) => ({
       audit_focus: request.audit_focus ?? "comprehensive",
       compliance_requirements: request.compliance_requirements ?? [],
       continuation_id: continuationId,

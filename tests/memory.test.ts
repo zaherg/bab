@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
-import { ConversationStore, MAX_THREAD_TURNS } from "../src/memory/conversations";
+import {
+  ConversationStore,
+  MAX_THREAD_TURNS,
+} from "../src/memory/conversations";
 import type { StorageAdapter } from "../src/memory/interface";
 import { InMemoryStorageAdapter } from "../src/memory/memory";
 

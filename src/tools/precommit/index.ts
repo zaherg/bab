@@ -4,9 +4,9 @@ import { PRECOMMIT_SYSTEM_PROMPT } from "../../prompts/precommit";
 import type { ToolContext } from "../base";
 import { BaseWorkflowInputSchema } from "../base";
 import {
-  WorkflowRunner,
   type WorkflowPromptContext,
   type WorkflowRequestLike,
+  WorkflowRunner,
 } from "../workflow/runner";
 
 const PrecommitInputSchema = BaseWorkflowInputSchema.extend({
@@ -21,7 +21,8 @@ const PrecommitInputSchema = BaseWorkflowInputSchema.extend({
     .optional(),
 });
 
-type PrecommitRequest = z.infer<typeof PrecommitInputSchema> & WorkflowRequestLike;
+type PrecommitRequest = z.infer<typeof PrecommitInputSchema> &
+  WorkflowRequestLike;
 
 function buildPrecommitPrompt({
   fileContext,
@@ -46,7 +47,9 @@ function buildPrecommitPrompt({
     `Current step:\n${request.step}`,
     `Findings so far:\n${request.findings}`,
     historyText ? `Conversation history:\n${historyText}` : "",
-    fileContext.embedded_text ? `Embedded files:\n${fileContext.embedded_text}` : "",
+    fileContext.embedded_text
+      ? `Embedded files:\n${fileContext.embedded_text}`
+      : "",
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -64,7 +67,13 @@ export function createPrecommitTool(context: ToolContext) {
     context,
     description:
       "Validates git changes and repository state before committing with systematic analysis. Use for multi-repository validation, security review, change impact assessment, and completeness verification. Guides through structured investigation with expert analysis.",
-    formatPayload: ({ aiResult, continuationId, expertAnalysis, fileContext, request }) => ({
+    formatPayload: ({
+      aiResult,
+      continuationId,
+      expertAnalysis,
+      fileContext,
+      request,
+    }) => ({
       compare_to: request.compare_to,
       continuation_id: continuationId,
       expert_analysis: expertAnalysis?.text,

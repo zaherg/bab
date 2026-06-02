@@ -1,5 +1,5 @@
-import { logger } from "../utils/logger";
 import type { ModelInfo, ProviderId } from "../types";
+import { logger } from "../utils/logger";
 import { validateCustomApiUrl } from "./custom-url";
 
 const CACHE_TTL_MS = 48 * 60 * 60 * 1000; // 48 hours
@@ -54,7 +54,9 @@ function normalizeModels(providerId: ProviderId, data: unknown): ModelInfo[] {
       }
 
       case "anthropic": {
-        const models = (data as { data: Array<{ id: string; display_name?: string }> }).data ?? [];
+        const models =
+          (data as { data: Array<{ id: string; display_name?: string }> })
+            .data ?? [];
         return models.map((m) => ({
           id: m.id,
           provider: "anthropic" as ProviderId,
@@ -64,21 +66,38 @@ function normalizeModels(providerId: ProviderId, data: unknown): ModelInfo[] {
       }
 
       case "google": {
-        const models = (data as { models: Array<{ name: string; displayName?: string; inputTokenLimit?: number }> }).models ?? [];
-        return models
-          .map((m) => ({
-            id: m.name.replace(/^models\//, ""),
-            provider: "google" as ProviderId,
-            display_name: m.displayName ?? m.name.replace(/^models\//, ""),
-            capabilities: {
-              ...defaultCaps,
-              context_window: m.inputTokenLimit ?? defaultContext,
-            },
-          }));
+        const models =
+          (
+            data as {
+              models: Array<{
+                name: string;
+                displayName?: string;
+                inputTokenLimit?: number;
+              }>;
+            }
+          ).models ?? [];
+        return models.map((m) => ({
+          id: m.name.replace(/^models\//, ""),
+          provider: "google" as ProviderId,
+          display_name: m.displayName ?? m.name.replace(/^models\//, ""),
+          capabilities: {
+            ...defaultCaps,
+            context_window: m.inputTokenLimit ?? defaultContext,
+          },
+        }));
       }
 
       case "openrouter": {
-        const models = (data as { data: Array<{ id: string; name?: string; context_length?: number }> }).data ?? [];
+        const models =
+          (
+            data as {
+              data: Array<{
+                id: string;
+                name?: string;
+                context_length?: number;
+              }>;
+            }
+          ).data ?? [];
         return models.map((m) => ({
           id: m.id,
           provider: "openrouter" as ProviderId,
@@ -108,9 +127,10 @@ async function fetchFromProvider(
   baseUrl?: string,
   options: DiscoverModelsOptions = {},
 ): Promise<ModelInfo[]> {
-  const validatedBaseUrl = providerId === "custom" && baseUrl
-    ? validateCustomApiUrl(baseUrl, options.allowInsecureCustomUrl === true)
-    : baseUrl;
+  const validatedBaseUrl =
+    providerId === "custom" && baseUrl
+      ? validateCustomApiUrl(baseUrl, options.allowInsecureCustomUrl === true)
+      : baseUrl;
   const endpoint = validatedBaseUrl
     ? `${validatedBaseUrl.replace(/\/$/, "")}/models`
     : PROVIDER_API_ENDPOINTS[providerId];
@@ -126,7 +146,7 @@ async function fetchFromProvider(
   if (providerId === "google") {
     headers["x-goog-api-key"] = apiKey;
   } else {
-    headers["Authorization"] = `Bearer ${apiKey}`;
+    headers.Authorization = `Bearer ${apiKey}`;
   }
 
   if (providerId === "anthropic") {

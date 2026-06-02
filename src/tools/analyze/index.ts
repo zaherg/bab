@@ -4,9 +4,9 @@ import { ANALYZE_SYSTEM_PROMPT } from "../../prompts/analyze";
 import type { ToolContext } from "../base";
 import { BaseWorkflowInputSchema } from "../base";
 import {
-  WorkflowRunner,
   type WorkflowPromptContext,
   type WorkflowRequestLike,
+  WorkflowRunner,
 } from "../workflow/runner";
 
 const AnalyzeInputSchema = BaseWorkflowInputSchema.extend({
@@ -38,7 +38,9 @@ function buildAnalyzePrompt({
     `Current plan:\n${request.step}`,
     `Findings so far:\n${request.findings}`,
     historyText ? `Conversation history:\n${historyText}` : "",
-    fileContext.embedded_text ? `Embedded files:\n${fileContext.embedded_text}` : "",
+    fileContext.embedded_text
+      ? `Embedded files:\n${fileContext.embedded_text}`
+      : "",
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -56,7 +58,13 @@ export function createAnalyzeTool(context: ToolContext) {
     context,
     description:
       "Performs comprehensive code analysis with systematic investigation and expert validation. Use for architecture, performance, maintainability, and pattern analysis. Guides through structured code review and strategic planning.",
-    formatPayload: ({ aiResult, continuationId, expertAnalysis, fileContext, request }) => ({
+    formatPayload: ({
+      aiResult,
+      continuationId,
+      expertAnalysis,
+      fileContext,
+      request,
+    }) => ({
       analysis_type: request.analysis_type ?? "general",
       confidence: request.confidence ?? "low",
       continuation_id: continuationId,

@@ -3,9 +3,12 @@ import { getLoadedPlugins } from "../delegate/plugin-cache";
 import { resolveRole } from "../delegate/roles";
 import { mergeEnv } from "../utils/env";
 import { logger } from "../utils/logger";
-import type { GenerateTextResult, ThinkingMode } from "./registry";
-import type { ProviderRegistry } from "./registry";
 import { estimateTokenCount } from "../utils/tokens";
+import type {
+  GenerateTextResult,
+  ProviderRegistry,
+  ThinkingMode,
+} from "./registry";
 
 export interface ModelQueryOptions {
   temperature?: number;
@@ -38,10 +41,15 @@ export class ModelGateway {
     const modelInfo = await this.providerRegistry.getModelInfo(modelId);
 
     if (modelInfo) {
-      const result = await this.providerRegistry.generateText(modelId, prompt, systemPrompt, {
-        temperature: options.temperature,
-        thinkingMode: options.thinkingMode,
-      });
+      const result = await this.providerRegistry.generateText(
+        modelId,
+        prompt,
+        systemPrompt,
+        {
+          temperature: options.temperature,
+          thinkingMode: options.thinkingMode,
+        },
+      );
       if (!result.ok) throw new Error(result.error.message);
       return result.value;
     }
@@ -63,7 +71,13 @@ export class ModelGateway {
     const pluginId = modelId.slice(0, slashIndex);
     const modelName = modelId.slice(slashIndex + 1);
 
-    return this.queryViaDelegate(pluginId, modelName, prompt, systemPrompt, options);
+    return this.queryViaDelegate(
+      pluginId,
+      modelName,
+      prompt,
+      systemPrompt,
+      options,
+    );
   }
 
   private async queryViaDelegate(
@@ -77,7 +91,8 @@ export class ModelGateway {
     const plugin = loadedPlugins.find((p) => p.manifest.id === pluginId);
 
     if (!plugin) {
-      const available = loadedPlugins.map((p) => p.manifest.id).join(", ") || "none";
+      const available =
+        loadedPlugins.map((p) => p.manifest.id).join(", ") || "none";
       throw new Error(
         `Model "${pluginId}/${modelName}" not found. ` +
           `Plugin "${pluginId}" is not installed. Available plugins: ${available}`,
@@ -110,7 +125,9 @@ export class ModelGateway {
         ...role.args,
         model: modelName,
         ...(options.thinkingMode && { thinking_mode: options.thinkingMode }),
-        ...(options.temperature !== undefined && { temperature: options.temperature }),
+        ...(options.temperature !== undefined && {
+          temperature: options.temperature,
+        }),
       },
     };
 
@@ -132,7 +149,10 @@ export class ModelGateway {
     const events: Array<{ type: string; content?: string }> = [];
 
     if (Symbol.asyncIterator in rawEvents) {
-      for await (const event of rawEvents as AsyncIterable<{ type: string; content?: string }>) {
+      for await (const event of rawEvents as AsyncIterable<{
+        type: string;
+        content?: string;
+      }>) {
         events.push(event);
       }
     } else {

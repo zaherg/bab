@@ -1,21 +1,21 @@
 import { z } from "zod/v4";
 
 import { CONSENSUS_SYSTEM_PROMPT } from "../../prompts/consensus";
+import type { GenerateTextResult } from "../../providers/registry";
 import type { RegisteredTool } from "../../server";
 import type { ToolOutput } from "../../types";
-import type { GenerateTextResult } from "../../providers/registry";
 import {
   createJsonToolOutput,
   createSuccessToolResult,
   createToolError,
   embedFiles,
   prepareConversation,
-  remainingConversationTurns,
   recordConversationTurn,
+  remainingConversationTurns,
   selectModel,
-  toolFailureResult,
   type ToolContext,
   type ToolExecutionResult,
+  toolFailureResult,
 } from "../base";
 
 const ConsensusModelSchema = z.object({
@@ -30,9 +30,7 @@ const ConsensusModelSchema = z.object({
   stance: z.enum(["for", "against", "neutral"]).optional(),
   stance_prompt: z.string().min(1).optional(),
   temperature: z.number().min(0).max(1).optional(),
-  thinking_mode: z
-    .enum(["minimal", "low", "medium", "high", "max"])
-    .optional(),
+  thinking_mode: z.enum(["minimal", "low", "medium", "high", "max"]).optional(),
 });
 
 const ConsensusResponseSchema = z.object({
@@ -49,22 +47,30 @@ const ConsensusInputSchema = z.object({
     .int()
     .min(0)
     .optional()
-    .describe("Index of next model to consult (0-based). Pass back from prior response to resume."),
+    .describe(
+      "Index of next model to consult (0-based). Pass back from prior response to resume.",
+    ),
   findings: z.string().min(1),
   images: z.array(z.string().min(1)).optional(),
   model_responses: z
     .array(ConsensusResponseSchema)
     .optional()
-    .describe("Responses from prior call. Pass back to resume an interrupted round."),
+    .describe(
+      "Responses from prior call. Pass back to resume an interrupted round.",
+    ),
   models: z
     .array(ConsensusModelSchema)
     .min(2)
-    .describe("Models to consult (min 2). Each specifies a model ID and optional stance/temperature."),
+    .describe(
+      "Models to consult (min 2). Each specifies a model ID and optional stance/temperature.",
+    ),
   next_step_required: z.boolean(),
   parallel: z
     .boolean()
     .optional()
-    .describe("Consult all models concurrently. Default false (sequential, each sees prior responses)."),
+    .describe(
+      "Consult all models concurrently. Default false (sequential, each sees prior responses).",
+    ),
   relevant_files: z.array(z.string().min(1)).optional(),
   step: z.string().min(1),
   step_number: z.number().int().min(1),
@@ -85,13 +91,13 @@ function buildConsensusPrompt(
 ): string {
   const stance = modelConfig.stance ?? "neutral";
   const priorResponseText =
-    priorResponses.length > 0
-      ? JSON.stringify(priorResponses, null, 2)
-      : "";
+    priorResponses.length > 0 ? JSON.stringify(priorResponses, null, 2) : "";
 
   return [
     `Consensus review for stance: ${stance}`,
-    modelConfig.stance_prompt ? `Stance prompt:\n${modelConfig.stance_prompt}` : "",
+    modelConfig.stance_prompt
+      ? `Stance prompt:\n${modelConfig.stance_prompt}`
+      : "",
     `Proposal:\n${request.step}`,
     `Current findings:\n${request.findings}`,
     historyText ? `Conversation history:\n${historyText}` : "",
@@ -120,7 +126,9 @@ function buildSynthesisPrompt(
     .join("\n\n");
 }
 
-function aggregateUsage(results: GenerateTextResult[]): Record<string, unknown> {
+function aggregateUsage(
+  results: GenerateTextResult[],
+): Record<string, unknown> {
   return results.reduce(
     (carry, result) => ({
       input_tokens: carry.input_tokens + result.usage.input_tokens,
@@ -225,7 +233,6 @@ export function createConsensusTool(context: ToolContext): RegisteredTool {
             previousResponses.push(latestResponse);
             currentModelIndex += 1;
           }
-
         } else {
           // Sequential: one model per step
           for (const modelConfig of modelsToConsult) {
@@ -260,7 +267,8 @@ export function createConsensusTool(context: ToolContext): RegisteredTool {
 
         let synthesis: GenerateTextResult | undefined;
         let responseText = latestResponse?.response ?? "";
-        let nextStepRequired = !useParallel && currentModelIndex < request.models.length;
+        let nextStepRequired =
+          !useParallel && currentModelIndex < request.models.length;
 
         if (!request.next_step_required || useParallel) {
           const synthResult = await context.providerRegistry.generateText(
@@ -277,7 +285,10 @@ export function createConsensusTool(context: ToolContext): RegisteredTool {
             },
           );
           if (!synthResult.ok) {
-            return { ok: false, error: createToolError("execution", synthResult.error.message) };
+            return {
+              ok: false,
+              error: createToolError("execution", synthResult.error.message),
+            };
           }
           synthesis = synthResult.value;
           consultedResults.push(synthesis);

@@ -4,9 +4,9 @@ import { THINKDEEP_SYSTEM_PROMPT } from "../../prompts/thinkdeep";
 import type { ToolContext } from "../base";
 import { BaseWorkflowInputSchema } from "../base";
 import {
-  WorkflowRunner,
   type WorkflowPromptContext,
   type WorkflowRequestLike,
+  WorkflowRunner,
 } from "../workflow/runner";
 
 const ThinkDeepInputSchema = BaseWorkflowInputSchema.extend({
@@ -28,7 +28,9 @@ function buildThinkDeepPrompt({
     `Step ${request.step_number} of ${request.total_steps}`,
     `Next step required: ${request.next_step_required}`,
     request.confidence ? `Confidence: ${request.confidence}` : "",
-    request.problem_context ? `Problem context:\n${request.problem_context}` : "",
+    request.problem_context
+      ? `Problem context:\n${request.problem_context}`
+      : "",
     request.focus_areas && request.focus_areas.length > 0
       ? `Focus areas: ${request.focus_areas.join(", ")}`
       : "",
@@ -42,7 +44,9 @@ function buildThinkDeepPrompt({
     `Current step:\n${request.step}`,
     `Findings so far:\n${request.findings}`,
     historyText ? `Conversation history:\n${historyText}` : "",
-    fileContext.embedded_text ? `Embedded files:\n${fileContext.embedded_text}` : "",
+    fileContext.embedded_text
+      ? `Embedded files:\n${fileContext.embedded_text}`
+      : "",
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -53,7 +57,9 @@ export function createThinkDeepTool(context: ToolContext) {
     buildExpertPrompt: ({ primaryResponse, request }) =>
       [
         "Validate and strengthen this thinkdeep analysis.",
-        request.problem_context ? `Problem context:\n${request.problem_context}` : "",
+        request.problem_context
+          ? `Problem context:\n${request.problem_context}`
+          : "",
         request.hypothesis ? `Current hypothesis:\n${request.hypothesis}` : "",
         `Primary analysis:\n${primaryResponse}`,
       ]
@@ -63,7 +69,13 @@ export function createThinkDeepTool(context: ToolContext) {
     context,
     description:
       "Performs multi-stage investigation and reasoning for complex problem analysis. Use for architecture decisions, complex bugs, performance challenges, and security analysis. Provides systematic hypothesis testing, evidence-based investigation, and expert validation.",
-    formatPayload: ({ aiResult, continuationId, expertAnalysis, fileContext, request }) => ({
+    formatPayload: ({
+      aiResult,
+      continuationId,
+      expertAnalysis,
+      fileContext,
+      request,
+    }) => ({
       confidence: request.confidence ?? "low",
       continuation_id: continuationId,
       expert_analysis: expertAnalysis?.text,

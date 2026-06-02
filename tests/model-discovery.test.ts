@@ -1,8 +1,11 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-
-import { clearDiscoveryCache, discoverModels, getCachedModels } from "../src/providers/model-discovery";
-import { ModelGateway } from "../src/providers/model-gateway";
 import { invalidatePluginCache } from "../src/delegate/plugin-cache";
+import {
+  clearDiscoveryCache,
+  discoverModels,
+  getCachedModels,
+} from "../src/providers/model-discovery";
+import { ModelGateway } from "../src/providers/model-gateway";
 import type { ProviderRegistry } from "../src/providers/registry";
 
 const originalFetch = globalThis.fetch;
@@ -61,7 +64,11 @@ describe("discoverModels", () => {
   test("normalizes Google response — strips models/ prefix", async () => {
     globalThis.fetch = mockFetch({
       models: [
-        { name: "models/gemini-2.5-flash", displayName: "Gemini 2.5 Flash", inputTokenLimit: 1_048_576 },
+        {
+          name: "models/gemini-2.5-flash",
+          displayName: "Gemini 2.5 Flash",
+          inputTokenLimit: 1_048_576,
+        },
         { name: "models/gemini-2.0-pro", displayName: "Gemini 2.0 Pro" },
       ],
     });
@@ -80,7 +87,11 @@ describe("discoverModels", () => {
   test("normalizes OpenRouter response", async () => {
     globalThis.fetch = mockFetch({
       data: [
-        { id: "anthropic/claude-opus-4", name: "Claude Opus 4", context_length: 200_000 },
+        {
+          id: "anthropic/claude-opus-4",
+          name: "Claude Opus 4",
+          context_length: 200_000,
+        },
         { id: "openai/gpt-4o", name: "GPT-4o", context_length: 128_000 },
       ],
     });
@@ -99,7 +110,9 @@ describe("discoverModels", () => {
   });
 
   test("returns empty array and logs warning on fetch failure", async () => {
-    globalThis.fetch = mock(() => Promise.reject(new Error("network error"))) as unknown as typeof fetch;
+    globalThis.fetch = mock(() =>
+      Promise.reject(new Error("network error")),
+    ) as unknown as typeof fetch;
 
     const models = await discoverModels("openai", "test-key");
     expect(models).toHaveLength(0);
@@ -117,7 +130,9 @@ describe("discoverModels", () => {
     globalThis.fetch = mock(() => {
       callCount++;
       return Promise.resolve(
-        new Response(JSON.stringify({ data: [{ id: "gpt-4o" }] }), { status: 200 }),
+        new Response(JSON.stringify({ data: [{ id: "gpt-4o" }] }), {
+          status: 200,
+        }),
       );
     }) as unknown as typeof fetch;
 
@@ -134,7 +149,12 @@ describe("discoverModels", () => {
       callCount++;
       return new Promise((resolve) =>
         setTimeout(
-          () => resolve(new Response(JSON.stringify({ data: [{ id: "gpt-4o" }] }), { status: 200 })),
+          () =>
+            resolve(
+              new Response(JSON.stringify({ data: [{ id: "gpt-4o" }] }), {
+                status: 200,
+              }),
+            ),
           10,
         ),
       );
@@ -232,8 +252,8 @@ describe("ModelGateway delegate routing", () => {
     const gateway = new ModelGateway(mockRegistry, config);
 
     // No slash — should fail with "not found in SDK registry" message
-    await expect(
-      gateway.query("nonexistent-model", "Hello"),
-    ).rejects.toThrow("not found in SDK registry");
+    await expect(gateway.query("nonexistent-model", "Hello")).rejects.toThrow(
+      "not found in SDK registry",
+    );
   });
 });

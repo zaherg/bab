@@ -1,5 +1,5 @@
-import { readdir, realpath, stat } from "node:fs/promises";
 import type { Dirent } from "node:fs";
+import { readdir, realpath, stat } from "node:fs/promises";
 import { join } from "node:path";
 
 import type { DiscoveredPlugin } from "./types";
@@ -51,9 +51,7 @@ export async function discoverPluginDirectories(
         directory,
         manifestPath,
       });
-    } catch {
-      continue;
-    }
+    } catch {}
   }
 
   return discoveredPlugins.sort((left, right) =>

@@ -1,5 +1,4 @@
-import { realpathSync } from "node:fs";
-import { statSync } from "node:fs";
+import { realpathSync, statSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { isAbsolute, resolve } from "node:path";
 
@@ -23,9 +22,12 @@ function validateWorkingDirectory(dir: string): string | undefined {
     const home = homedir();
     const tmp = resolve(tmpdir());
     if (
-      real === cwd || real.startsWith(`${cwd}/`) ||
-      real === home || real.startsWith(`${home}/`) ||
-      real === tmp || real.startsWith(`${tmp}/`)
+      real === cwd ||
+      real.startsWith(`${cwd}/`) ||
+      real === home ||
+      real.startsWith(`${home}/`) ||
+      real === tmp ||
+      real.startsWith(`${tmp}/`)
     ) {
       return undefined;
     }
@@ -94,9 +96,7 @@ function sanitizeProviderMetadata(
     }
   };
 
-  const keysBySize = Object.keys(cleaned).sort(
-    (a, b) => sizeOf(b) - sizeOf(a),
-  );
+  const keysBySize = Object.keys(cleaned).sort((a, b) => sizeOf(b) - sizeOf(a));
 
   for (const key of keysBySize) {
     delete cleaned[key];
@@ -104,14 +104,21 @@ function sanitizeProviderMetadata(
 
     try {
       if (JSON.stringify(cleaned).length + 200 <= MAX_METADATA_SIZE) {
-        return { ...cleaned, _truncated: true, _original_size: originalSize, _dropped_keys: droppedKeys };
+        return {
+          ...cleaned,
+          _truncated: true,
+          _original_size: originalSize,
+          _dropped_keys: droppedKeys,
+        };
       }
-    } catch {
-      continue;
-    }
+    } catch {}
   }
 
-  return { _truncated: true, _original_size: originalSize, _dropped_keys: droppedKeys };
+  return {
+    _truncated: true,
+    _original_size: originalSize,
+    _dropped_keys: droppedKeys,
+  };
 }
 
 async function collectEvents(
@@ -167,7 +174,9 @@ export function createDelegateTool(config: BabConfig): RegisteredTool {
       if (wdError) {
         return {
           ok: false,
-          error: createToolError("validation", wdError, { working_directory: workingDirectory }),
+          error: createToolError("validation", wdError, {
+            working_directory: workingDirectory,
+          }),
         };
       }
 

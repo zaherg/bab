@@ -4,9 +4,9 @@ import { CODEREVIEW_SYSTEM_PROMPT } from "../../prompts/codereview";
 import type { ToolContext } from "../base";
 import { BaseWorkflowInputSchema } from "../base";
 import {
-  WorkflowRunner,
   type WorkflowPromptContext,
   type WorkflowRequestLike,
+  WorkflowRunner,
 } from "../workflow/runner";
 
 const CodeReviewInputSchema = BaseWorkflowInputSchema.extend({
@@ -46,7 +46,9 @@ function buildCodeReviewPrompt({
     `Current step:\n${request.step}`,
     `Findings so far:\n${request.findings}`,
     historyText ? `Conversation history:\n${historyText}` : "",
-    fileContext.embedded_text ? `Embedded files:\n${fileContext.embedded_text}` : "",
+    fileContext.embedded_text
+      ? `Embedded files:\n${fileContext.embedded_text}`
+      : "",
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -68,7 +70,13 @@ export function createCodeReviewTool(context: ToolContext) {
     context,
     description:
       "Performs systematic, step-by-step code review with expert validation. Use for comprehensive analysis covering quality, security, performance, and architecture. Guides through structured investigation to ensure thoroughness.",
-    formatPayload: ({ aiResult, continuationId, expertAnalysis, fileContext, request }) => ({
+    formatPayload: ({
+      aiResult,
+      continuationId,
+      expertAnalysis,
+      fileContext,
+      request,
+    }) => ({
       continuation_id: continuationId,
       expert_analysis: expertAnalysis?.text,
       files_checked: request.files_checked ?? [],

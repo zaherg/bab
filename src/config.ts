@@ -36,38 +36,54 @@ export interface ParseEnvFileOptions {
 // Zod schemas (#7, #16)
 // ---------------------------------------------------------------------------
 
-const BoolEnv = z.string().transform((v) => v === "1" || v.toLowerCase() === "true");
+const BoolEnv = z
+  .string()
+  .transform((v) => v === "1" || v.toLowerCase() === "true");
 
 const CommaSeparatedList = z.string().transform((v) =>
-  v.split(",").map((s) => s.trim()).filter(Boolean),
+  v
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean),
 );
 
-const PositiveInt = z.string().regex(/^\d+$/u, "must be a positive integer").transform(Number);
+const PositiveInt = z
+  .string()
+  .regex(/^\d+$/u, "must be a positive integer")
+  .transform(Number);
 
-export const BabEnvSchema = z.object({
-  BAB_EAGER_TOOLS: BoolEnv.optional(),
-  BAB_PERSIST: BoolEnv.optional(),
-  BAB_PERSIST_TOOLS: CommaSeparatedList.optional(),
-  BAB_DISABLED_PERSIST_TOOLS: CommaSeparatedList.optional(),
-  BAB_DISABLED_TOOLS: CommaSeparatedList.optional(),
-  BAB_ENABLED_TOOLS: CommaSeparatedList.optional(),
-  BAB_CLI_TIMEOUT_MS: PositiveInt.optional(),
-  BAB_MAX_CONCURRENT_PROCESSES: PositiveInt.optional(),
-}).passthrough();
+export const BabEnvSchema = z
+  .object({
+    BAB_EAGER_TOOLS: BoolEnv.optional(),
+    BAB_PERSIST: BoolEnv.optional(),
+    BAB_PERSIST_TOOLS: CommaSeparatedList.optional(),
+    BAB_DISABLED_PERSIST_TOOLS: CommaSeparatedList.optional(),
+    BAB_DISABLED_TOOLS: CommaSeparatedList.optional(),
+    BAB_ENABLED_TOOLS: CommaSeparatedList.optional(),
+    BAB_CLI_TIMEOUT_MS: PositiveInt.optional(),
+    BAB_MAX_CONCURRENT_PROCESSES: PositiveInt.optional(),
+  })
+  .passthrough();
 
 /** Validate known BAB_* env vars via Zod. Returns parsed result or throws with clear messages. */
-function validateBabEnv(env: Record<string, string>): z.infer<typeof BabEnvSchema> {
+function validateBabEnv(
+  env: Record<string, string>,
+): z.infer<typeof BabEnvSchema> {
   const result = BabEnvSchema.safeParse(env);
   if (!result.success) {
     const messages = result.error.issues.map(
       (issue) => `${issue.path.join(".")}: ${issue.message}`,
     );
-    throw new Error(`Invalid BAB environment config:\n  ${messages.join("\n  ")}`);
+    throw new Error(
+      `Invalid BAB environment config:\n  ${messages.join("\n  ")}`,
+    );
   }
   return result.data;
 }
 
-const EnvKeySchema = z.string().regex(/^[A-Z_][A-Z0-9_]*$/u, "invalid environment variable name");
+const EnvKeySchema = z
+  .string()
+  .regex(/^[A-Z_][A-Z0-9_]*$/u, "invalid environment variable name");
 
 export function getConfigPaths(homeDirectory = homedir()): BabConfigPaths {
   const baseDir = join(homeDirectory, CONFIG_ROOT_DIR, CONFIG_DIR_NAME);

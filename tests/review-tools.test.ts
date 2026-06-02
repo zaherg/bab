@@ -40,7 +40,8 @@ describe("review tools", () => {
               timestamp: new Date("2026-03-10T12:00:00.000Z"),
             },
             steps: [],
-            text: calls.length === 1 ? "security-audit" : "security-audit-expert",
+            text:
+              calls.length === 1 ? "security-audit" : "security-audit-expert",
             usage: { inputTokens: 12, outputTokens: 4, totalTokens: 16 },
             warnings: undefined,
           } as never;

@@ -1,8 +1,8 @@
 import type { BabConfig } from "../config";
 import type { ProviderRegistry } from "../providers/registry";
 import type { RegisteredTool } from "../server";
-import type { ToolContext } from "./base";
 import { createAnalyzeTool } from "./analyze";
+import type { ToolContext } from "./base";
 import { createChallengeTool } from "./challenge";
 import { createChatTool } from "./chat";
 import { createCodeReviewTool } from "./codereview";

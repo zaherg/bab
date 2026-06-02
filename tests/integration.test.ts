@@ -23,23 +23,35 @@ afterEach(async () => {
 // ---------------------------------------------------------------------------
 
 // Unwraps the MCP text envelope for a successful tool call.
-function parseSuccessOutput(result: Awaited<ReturnType<BabTestHarness["callTool"]>>) {
+function parseSuccessOutput(
+  result: Awaited<ReturnType<BabTestHarness["callTool"]>>,
+) {
   expect(result.isError).toBeFalse();
   const [content] = result.content;
-  if (!content || content.type !== "text") throw new Error("Expected text content");
-  return JSON.parse(content.text) as { status: string; content: string; metadata: Record<string, unknown> };
+  if (!content || content.type !== "text")
+    throw new Error("Expected text content");
+  return JSON.parse(content.text) as {
+    status: string;
+    content: string;
+    metadata: Record<string, unknown>;
+  };
 }
 
 // Unwraps the MCP text envelope for a failed tool call.
-function parseToolError(result: Awaited<ReturnType<BabTestHarness["callTool"]>>) {
+function parseToolError(
+  result: Awaited<ReturnType<BabTestHarness["callTool"]>>,
+) {
   expect(result.isError).toBeTrue();
   const [content] = result.content;
-  if (!content || content.type !== "text") throw new Error("Expected text content");
+  if (!content || content.type !== "text")
+    throw new Error("Expected text content");
   return JSON.parse(content.text) as { type: string; message: string };
 }
 
 // Unwraps the double-encoded content payload used by tools like list_models.
-function parseInnerContent<T>(result: Awaited<ReturnType<BabTestHarness["callTool"]>>): T {
+function parseInnerContent<T>(
+  result: Awaited<ReturnType<BabTestHarness["callTool"]>>,
+): T {
   const { content } = parseSuccessOutput(result);
   return JSON.parse(content) as T;
 }
@@ -116,7 +128,9 @@ async function createStubPlugin(
   );
 
   if (!opts.noAdapter) {
-    const outputs = opts.outputs ?? [{ content: "stub output", content_type: "text" }];
+    const outputs = opts.outputs ?? [
+      { content: "stub output", content_type: "text" },
+    ];
     const adapterBody = opts.throws
       ? [
           "export default {",
@@ -131,7 +145,9 @@ async function createStubPlugin(
             (o) =>
               `      { type: 'output', run_id: input.runId, provider_id: ${JSON.stringify(opts.id)}, timestamp: new Date().toISOString(), content: ${JSON.stringify(o.content)}, content_type: ${JSON.stringify(o.content_type ?? "text")} },`,
           ),
-          "      { type: 'done', run_id: input.runId, provider_id: " + JSON.stringify(opts.id) + ", timestamp: new Date().toISOString(), metadata: {} },",
+          "      { type: 'done', run_id: input.runId, provider_id: " +
+            JSON.stringify(opts.id) +
+            ", timestamp: new Date().toISOString(), metadata: {} },",
           "    ];",
           "  },",
           "};",
@@ -161,7 +177,10 @@ describe("Bab MCP server integration", () => {
 
   test("delegate executes a stub plugin and returns its output", async () => {
     const sandbox = await mkdtemp(join(tmpdir(), "bab-integration-delegate-"));
-    await createStubPlugin(sandbox, { id: "echo-stub", outputs: [{ content: "hello from stub" }] });
+    await createStubPlugin(sandbox, {
+      id: "echo-stub",
+      outputs: [{ content: "hello from stub" }],
+    });
 
     const harness = await createBabTestHarness([join(sandbox, "echo-stub")]);
     activeHarnesses.push(harness);
@@ -195,7 +214,9 @@ describe("Bab MCP server integration", () => {
     const sandbox = await mkdtemp(join(tmpdir(), "bab-integration-noadapter-"));
     await createStubPlugin(sandbox, { id: "no-adapter-stub", noAdapter: true });
 
-    const harness = await createBabTestHarness([join(sandbox, "no-adapter-stub")]);
+    const harness = await createBabTestHarness([
+      join(sandbox, "no-adapter-stub"),
+    ]);
     activeHarnesses.push(harness);
 
     const result = await harness.callTool({
@@ -217,7 +238,11 @@ describe("Bab MCP server integration", () => {
     activeHarnesses.push(harness);
 
     const result = await harness.callTool({
-      arguments: { cli_name: "role-stub", prompt: "hello", role: "nonexistent-role" },
+      arguments: {
+        cli_name: "role-stub",
+        prompt: "hello",
+        role: "nonexistent-role",
+      },
       name: "delegate",
     });
     const error = parseToolError(result);
@@ -229,7 +254,10 @@ describe("Bab MCP server integration", () => {
 
   test("delegate surfaces adapter throws as tool errors", async () => {
     const sandbox = await mkdtemp(join(tmpdir(), "bab-integration-error-"));
-    await createStubPlugin(sandbox, { id: "fail-stub", throws: "adapter exploded" });
+    await createStubPlugin(sandbox, {
+      id: "fail-stub",
+      throws: "adapter exploded",
+    });
 
     const harness = await createBabTestHarness([join(sandbox, "fail-stub")]);
     activeHarnesses.push(harness);
@@ -251,18 +279,29 @@ describe("Bab MCP server integration", () => {
     // Write adapter manually — omits the done event
     const pluginDir = join(sandbox, "nodone-stub");
     await mkdir(pluginDir, { recursive: true });
-    await writeFile(join(pluginDir, "manifest.yaml"), [
-      "id: nodone-stub", "name: nodone-stub stub", "version: 1.0.0",
-      "command: echo", "roles:", "  - default",
-      "capabilities:", "  output_format: jsonl",
-    ].join("\n"));
-    await writeFile(join(pluginDir, "adapter.ts"), [
-      "export default {",
-      "  async run(input) {",
-      "    return [{ type: 'output', run_id: input.runId, provider_id: 'nodone-stub', timestamp: new Date().toISOString(), content: 'no done', content_type: 'text' }];",
-      "  },",
-      "};",
-    ].join("\n"));
+    await writeFile(
+      join(pluginDir, "manifest.yaml"),
+      [
+        "id: nodone-stub",
+        "name: nodone-stub stub",
+        "version: 1.0.0",
+        "command: echo",
+        "roles:",
+        "  - default",
+        "capabilities:",
+        "  output_format: jsonl",
+      ].join("\n"),
+    );
+    await writeFile(
+      join(pluginDir, "adapter.ts"),
+      [
+        "export default {",
+        "  async run(input) {",
+        "    return [{ type: 'output', run_id: input.runId, provider_id: 'nodone-stub', timestamp: new Date().toISOString(), content: 'no done', content_type: 'text' }];",
+        "  },",
+        "};",
+      ].join("\n"),
+    );
     await writeInstallMetadata(pluginDir);
 
     const harness = await createBabTestHarness([pluginDir]);
@@ -275,17 +314,26 @@ describe("Bab MCP server integration", () => {
     const output = parseSuccessOutput(result);
 
     expect(output.status).toBe("success");
-    expect((output.metadata as Record<string, unknown>).done_event_count).toBe(1);
+    expect((output.metadata as Record<string, unknown>).done_event_count).toBe(
+      1,
+    );
 
     await rm(sandbox, { force: true, recursive: true });
   });
 
   test("list_models returns only explicitly configured providers", async () => {
-    const harness = await createBabTestHarness([], { OPENAI_API_KEY: "test-key" });
+    const harness = await createBabTestHarness([], {
+      OPENAI_API_KEY: "test-key",
+    });
     activeHarnesses.push(harness);
 
-    const result = await harness.callTool({ arguments: {}, name: "list_models" });
-    const models = parseInnerContent<{ providers: Array<{ provider: string }> }>(result);
+    const result = await harness.callTool({
+      arguments: {},
+      name: "list_models",
+    });
+    const models = parseInnerContent<{
+      providers: Array<{ provider: string }>;
+    }>(result);
 
     expect(Array.isArray(models.providers)).toBeTrue();
     // Hermetic env: only openai key was passed, so only openai providers appear

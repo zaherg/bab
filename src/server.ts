@@ -7,8 +7,8 @@ import {
   type GetPromptRequest,
   GetPromptRequestSchema,
   type GetPromptResult,
-  type ListPromptsResult,
   ListPromptsRequestSchema,
+  type ListPromptsResult,
   ListToolsRequestSchema,
   type ListToolsResult,
   type Tool as McpTool,
@@ -18,8 +18,8 @@ import { z } from "zod/v4";
 
 import type { BabConfig } from "./config";
 import { persistReport } from "./memory/persistence";
-import type { ToolManifestEntry } from "./tools/manifest";
 import { getPrompt, listPrompts } from "./prompts/slash-commands";
+import type { ToolManifestEntry } from "./tools/manifest";
 import {
   type Result,
   type ToolError,
@@ -168,9 +168,8 @@ export class BabServer {
       CallToolRequestSchema,
       async (request) => this.handleCallToolRequest(request),
     );
-    this.protocolServer.setRequestHandler(
-      ListPromptsRequestSchema,
-      async () => this.handleListPromptsRequest(),
+    this.protocolServer.setRequestHandler(ListPromptsRequestSchema, async () =>
+      this.handleListPromptsRequest(),
     );
     this.protocolServer.setRequestHandler(
       GetPromptRequestSchema,
@@ -332,10 +331,15 @@ export class BabServer {
 
         if (this.shouldPersistTool(name)) {
           const inputText =
-            typeof rawArguments.step === "string" ? rawArguments.step :
-            typeof rawArguments.findings === "string" ? rawArguments.findings :
-            typeof rawArguments.question === "string" ? rawArguments.question :
-            typeof rawArguments.prompt === "string" ? rawArguments.prompt : "";
+            typeof rawArguments.step === "string"
+              ? rawArguments.step
+              : typeof rawArguments.findings === "string"
+                ? rawArguments.findings
+                : typeof rawArguments.question === "string"
+                  ? rawArguments.question
+                  : typeof rawArguments.prompt === "string"
+                    ? rawArguments.prompt
+                    : "";
           const continuationId =
             typeof result.value.metadata?.continuation_id === "string"
               ? result.value.metadata.continuation_id
@@ -346,7 +350,10 @@ export class BabServer {
             toolName: name,
             continuationId,
             inputText,
-            content: typeof result.value.content === "string" ? result.value.content : JSON.stringify(result.value),
+            content:
+              typeof result.value.content === "string"
+                ? result.value.content
+                : JSON.stringify(result.value),
             models: [],
             projectRoot: process.cwd(),
           });

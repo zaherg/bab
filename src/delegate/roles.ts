@@ -1,13 +1,11 @@
 import { realpath } from "node:fs/promises";
 import { resolve } from "node:path";
-
-import type { PluginRole, RoleDefinition } from "../types";
-import type { LoadedPlugin } from "./types";
-
-import codingPrompt from "../prompts/delegate/coding.txt";
 import codereviewerPrompt from "../prompts/delegate/codereviewer.txt";
+import codingPrompt from "../prompts/delegate/coding.txt";
 import defaultPrompt from "../prompts/delegate/default.txt";
 import plannerPrompt from "../prompts/delegate/planner.txt";
+import type { PluginRole, RoleDefinition } from "../types";
+import type { LoadedPlugin } from "./types";
 
 const BUILT_IN_PROMPTS: Record<string, string> = {
   coding: codingPrompt,

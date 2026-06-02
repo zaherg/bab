@@ -1,11 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtemp, mkdir, writeFile, symlink } from "node:fs/promises";
+import { mkdir, mkdtemp, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-
-import { PluginManifestSchema } from "../src/types";
 import { discoverPluginDirectories } from "../src/delegate/discovery";
 import { loadPlugin } from "../src/delegate/loader";
+import { PluginManifestSchema } from "../src/types";
 
 const BASE_MANIFEST = {
   id: "test-plugin",
@@ -97,10 +96,10 @@ describe("tool_prompts loader caching", () => {
     const loaded = await loadPlugin(discovered[0]!);
 
     expect(loaded.resolvedToolPrompts).toBeDefined();
-    expect(loaded.resolvedToolPrompts!.codereview).toBe(
+    expect(loaded.resolvedToolPrompts?.codereview).toBe(
       "You are a strict code reviewer for this plugin.",
     );
-    expect(loaded.resolvedToolPrompts!.debug).toBe(
+    expect(loaded.resolvedToolPrompts?.debug).toBe(
       "You are a debugging specialist for this plugin.",
     );
   });
@@ -134,10 +133,7 @@ describe("tool_prompts loader caching", () => {
     const promptsDir = join(pluginDir, "prompts");
 
     await mkdir(promptsDir, { recursive: true });
-    await writeFile(
-      join(promptsDir, "codereview.txt"),
-      "Good prompt content.",
-    );
+    await writeFile(join(promptsDir, "codereview.txt"), "Good prompt content.");
     // debug.txt does not exist — should be skipped
 
     await writeFile(
@@ -159,8 +155,8 @@ describe("tool_prompts loader caching", () => {
     const loaded = await loadPlugin(discovered[0]!);
 
     expect(loaded.resolvedToolPrompts).toBeDefined();
-    expect(loaded.resolvedToolPrompts!.codereview).toBe("Good prompt content.");
-    expect(loaded.resolvedToolPrompts!.debug).toBeUndefined();
+    expect(loaded.resolvedToolPrompts?.codereview).toBe("Good prompt content.");
+    expect(loaded.resolvedToolPrompts?.debug).toBeUndefined();
   });
 
   test("skips unknown tool names with warning", async () => {

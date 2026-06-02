@@ -24,12 +24,18 @@ function createConfig(
       pluginsDir,
       promptsDir: join(pluginsDir, "..", "prompts"),
     },
-    persistence: { enabled: false, enabledTools: new Set(), disabledTools: new Set() },
+    persistence: {
+      enabled: false,
+      enabledTools: new Set(),
+      disabledTools: new Set(),
+    },
   };
 }
 
 async function writeInstallMetadata(pluginDirectory: string): Promise<void> {
-  const adapterContent = await Bun.file(join(pluginDirectory, "adapter.ts")).text();
+  const adapterContent = await Bun.file(
+    join(pluginDirectory, "adapter.ts"),
+  ).text();
   const hasher = new Bun.CryptoHasher("sha256");
   hasher.update(adapterContent);
 

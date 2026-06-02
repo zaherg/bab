@@ -30,7 +30,9 @@ export const PluginManifestSchema = z.object({
     .string()
     .regex(semverPattern, "version must be a valid semver string"),
   command: z.string().min(1, "command must not be empty"),
-  roles: z.array(PluginRoleSchema).min(1, "roles must include at least one role"),
+  roles: z
+    .array(PluginRoleSchema)
+    .min(1, "roles must include at least one role"),
   tool_prompts: z.record(z.string().min(1), z.string().min(1)).optional(),
   capabilities: PluginCapabilitySchema.default(() => ({
     supports_cancellation: false,

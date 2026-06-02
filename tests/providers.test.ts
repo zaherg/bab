@@ -15,7 +15,11 @@ function createConfig(env: Record<string, string> = {}): BabConfig {
       pluginsDir: "/tmp/.config/bab/plugins",
       promptsDir: "/tmp/.config/bab/prompts",
     },
-    persistence: { enabled: false, enabledTools: new Set(), disabledTools: new Set() },
+    persistence: {
+      enabled: false,
+      enabledTools: new Set(),
+      disabledTools: new Set(),
+    },
   };
 }
 

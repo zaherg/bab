@@ -1,13 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import {
+  type CallToolResult,
   CallToolResultSchema,
   ListToolsResultSchema,
-  type CallToolResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod/v4";
-
-import { BabServer } from "../src/server";
 import { parseDisabledTools } from "../src/bootstrap";
+import { BabServer } from "../src/server";
 
 type ToolContent = CallToolResult["content"][number];
 type TextBlock = Extract<ToolContent, { type: "text" }>;

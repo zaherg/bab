@@ -12,9 +12,9 @@ export function createListModelsTool(
   return {
     description:
       "List all available model IDs for use with other tools. " +
-        "Shows SDK models (direct IDs like 'gpt-5.2', 'gemini-2.5-pro') and " +
-        "plugin models (use as 'pluginId/modelName', e.g. 'copilot/claude-sonnet-4'). " +
-        "Call this before using model-dependent tools like chat, consensus, or analyze.",
+      "Shows SDK models (direct IDs like 'gpt-5.2', 'gemini-2.5-pro') and " +
+      "plugin models (use as 'pluginId/modelName', e.g. 'copilot/claude-sonnet-4'). " +
+      "Call this before using model-dependent tools like chat, consensus, or analyze.",
     execute: async () => {
       const providerModels = await providerRegistry.listModels();
 
@@ -27,7 +27,7 @@ export function createListModelsTool(
           .filter((p) => p.adapter?.listModels)
           .map(async (plugin) => {
             try {
-              const models = await plugin.adapter!.listModels!();
+              const models = await plugin.adapter?.listModels?.();
               return { id: plugin.manifest.id, models };
             } catch {
               return { id: plugin.manifest.id, models: [] as string[] };

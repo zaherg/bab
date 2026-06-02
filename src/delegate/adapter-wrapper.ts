@@ -1,5 +1,9 @@
 import type { DelegateEvent, PluginManifest } from "../types";
-import { DEFAULT_TIMEOUT_MS, ProcessRunner, type ProcessRunResult } from "./process-runner";
+import {
+  DEFAULT_TIMEOUT_MS,
+  ProcessRunner,
+  type ProcessRunResult,
+} from "./process-runner";
 import type {
   DelegatePluginAdapter,
   DelegateRunInput,

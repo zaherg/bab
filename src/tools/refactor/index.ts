@@ -4,9 +4,9 @@ import { REFACTOR_SYSTEM_PROMPT } from "../../prompts/refactor";
 import type { ToolContext } from "../base";
 import { BaseWorkflowInputSchema } from "../base";
 import {
-  WorkflowRunner,
   type WorkflowPromptContext,
   type WorkflowRequestLike,
+  WorkflowRunner,
 } from "../workflow/runner";
 
 const RefactorIssueSchema = z
@@ -33,7 +33,8 @@ const RefactorInputSchema = BaseWorkflowInputSchema.omit({
   style_guide_examples: z.array(z.string().min(1)).optional(),
 });
 
-type RefactorRequest = z.infer<typeof RefactorInputSchema> & WorkflowRequestLike;
+type RefactorRequest = z.infer<typeof RefactorInputSchema> &
+  WorkflowRequestLike;
 
 function buildRefactorPrompt({
   fileContext,
@@ -56,7 +57,9 @@ function buildRefactorPrompt({
     `Current step:\n${request.step}`,
     `Findings so far:\n${request.findings}`,
     historyText ? `Conversation history:\n${historyText}` : "",
-    fileContext.embedded_text ? `Embedded files:\n${fileContext.embedded_text}` : "",
+    fileContext.embedded_text
+      ? `Embedded files:\n${fileContext.embedded_text}`
+      : "",
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -74,7 +77,13 @@ export function createRefactorTool(context: ToolContext) {
     context,
     description:
       "Analyzes code for refactoring opportunities with systematic investigation. Use for code smell detection, decomposition planning, modernization, and maintainability improvements. Guides through structured analysis with expert validation.",
-    formatPayload: ({ aiResult, continuationId, expertAnalysis, fileContext, request }) => ({
+    formatPayload: ({
+      aiResult,
+      continuationId,
+      expertAnalysis,
+      fileContext,
+      request,
+    }) => ({
       confidence: request.confidence ?? "incomplete",
       continuation_id: continuationId,
       expert_analysis: expertAnalysis?.text,

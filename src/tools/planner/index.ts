@@ -4,9 +4,9 @@ import { PLANNER_SYSTEM_PROMPT } from "../../prompts/planner";
 import type { ToolContext } from "../base";
 import { BaseWorkflowInputSchema } from "../base";
 import {
-  WorkflowRunner,
   type WorkflowPromptContext,
   type WorkflowRequestLike,
+  WorkflowRunner,
 } from "../workflow/runner";
 
 const PlannerInputSchema = BaseWorkflowInputSchema.extend({
@@ -35,7 +35,9 @@ function buildPlannerPrompt({
     request.is_branch_point
       ? `This step starts branch ${request.branch_id ?? "unnamed"} from step ${request.branch_from_step ?? "unknown"}`
       : "",
-    request.more_steps_needed ? "More steps may be needed than previously planned." : "",
+    request.more_steps_needed
+      ? "More steps may be needed than previously planned."
+      : "",
     `Current planning step:\n${request.step}`,
     request.findings ? `Planning findings so far:\n${request.findings}` : "",
     historyText ? `Conversation history:\n${historyText}` : "",

@@ -2,11 +2,11 @@ import { loadConfig } from "./config";
 import { ConversationStore } from "./memory/conversations";
 import { createModelGateway } from "./providers/model-gateway";
 import { createProviderRegistry } from "./providers/registry";
+import { BabServer, toToolError } from "./server";
 import { generateSkillContent } from "./skills/generator";
 import { regenerateSkills } from "./skills/index";
 import { ALWAYS_LOADED_TOOLS, buildToolManifest } from "./tools/manifest";
 import { createToolsTool } from "./tools/tools";
-import { BabServer, toToolError } from "./server";
 import { configureLogging, logger } from "./utils/logger";
 
 export const CORE_TOOL_NAMES = [
@@ -73,13 +73,15 @@ export function registerCoreTools(
   const defaultTools = [...manifest.values()]
     .filter((e) => e.persist === "default")
     .map((e) => e.name);
-  const optionalEnabled = [...(config.persistence?.enabledTools ?? [])].filter((t) => {
-    const entry = manifest.get(t);
-    return entry?.persist === "optional";
-  });
-  const disabledFromDefaults = [...(config.persistence?.disabledTools ?? [])].filter((t) =>
-    manifest.get(t)?.persist === "default",
+  const optionalEnabled = [...(config.persistence?.enabledTools ?? [])].filter(
+    (t) => {
+      const entry = manifest.get(t);
+      return entry?.persist === "optional";
+    },
   );
+  const disabledFromDefaults = [
+    ...(config.persistence?.disabledTools ?? []),
+  ].filter((t) => manifest.get(t)?.persist === "default");
   logger.debug("Persistence config", {
     enabled: config.persistence?.enabled,
     default_tools: defaultTools,

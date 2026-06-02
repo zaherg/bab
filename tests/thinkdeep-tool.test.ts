@@ -69,7 +69,9 @@ describe("thinkdeep tool", () => {
     }
 
     expect(calls).toHaveLength(2);
-    expect(String(calls[1]?.prompt)).toContain("Validate and strengthen this thinkdeep analysis.");
+    expect(String(calls[1]?.prompt)).toContain(
+      "Validate and strengthen this thinkdeep analysis.",
+    );
 
     const payload = JSON.parse(result.value.content ?? "{}");
 

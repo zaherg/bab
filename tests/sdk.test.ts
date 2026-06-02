@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import { assertDelegateEvents, createDoneEvent, createMockProcessRunner } from "../src/sdk";
+import {
+  assertDelegateEvents,
+  createDoneEvent,
+  createMockProcessRunner,
+} from "../src/sdk";
 
 describe("plugin sdk", () => {
   test("creates a reusable mock process runner", async () => {

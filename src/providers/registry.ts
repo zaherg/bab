@@ -1,12 +1,9 @@
 import { anthropic, createAnthropic } from "@ai-sdk/anthropic";
-import { google, createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createGoogleGenerativeAI, google } from "@ai-sdk/google";
+import { createOpenAI, openai } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter, openrouter } from "@openrouter/ai-sdk-provider";
-import { createOpenAI, openai } from "@ai-sdk/openai";
-import {
-  generateText as aiGenerateText,
-  type LanguageModel,
-} from "ai";
+import { generateText as aiGenerateText, type LanguageModel } from "ai";
 
 import type { BabConfig } from "../config";
 import type { ModelInfo, ProviderId, Result, ToolError } from "../types";
@@ -156,24 +153,26 @@ const PROVIDER_ENV_CONFIG = {
   google: { apiKey: "GOOGLE_API_KEY" },
   openai: { apiKey: "OPENAI_API_KEY" },
   openrouter: { apiKey: "OPENROUTER_API_KEY" },
-} as const satisfies Record<
-  ProviderId,
-  { apiKey?: string; baseUrl?: string }
->;
+} as const satisfies Record<ProviderId, { apiKey?: string; baseUrl?: string }>;
 
 export class ProviderRegistry {
   private readonly config: BabConfig;
   private readonly generateTextFn: GenerateTextFn;
   private readonly providerFactories = new Map<ProviderId, ProviderFactory>();
 
-  constructor({ config, generateTextFn = aiGenerateText }: ProviderRegistryOptions) {
+  constructor({
+    config,
+    generateTextFn = aiGenerateText,
+  }: ProviderRegistryOptions) {
     this.config = config;
     this.generateTextFn = generateTextFn;
   }
 
   async listModels(): Promise<ModelInfo[]> {
     // Trigger discovery for all configured providers (uses cache if fresh)
-    await Promise.all(this.configuredProviders().map((pid) => this.discoverProviderModels(pid)));
+    await Promise.all(
+      this.configuredProviders().map((pid) => this.discoverProviderModels(pid)),
+    );
     const discovered = getAllCachedModels();
     // Static takes priority — deduplicate by id
     const merged = new Map<string, ModelInfo>();
@@ -191,8 +190,8 @@ export class ProviderRegistry {
     );
     if (exactMatch) return exactMatch;
 
-    const aliasMatch = STATIC_MODEL_REGISTRY.find(
-      (model) => model.capabilities.aliases.includes(modelIdOrAlias),
+    const aliasMatch = STATIC_MODEL_REGISTRY.find((model) =>
+      model.capabilities.aliases.includes(modelIdOrAlias),
     );
     if (aliasMatch) return aliasMatch;
 
@@ -200,7 +199,9 @@ export class ProviderRegistry {
     for (const pid of this.configuredProviders()) {
       const models = await this.discoverProviderModels(pid);
       const found = models.find(
-        (m) => m.id === modelIdOrAlias || m.capabilities.aliases.includes(modelIdOrAlias),
+        (m) =>
+          m.id === modelIdOrAlias ||
+          m.capabilities.aliases.includes(modelIdOrAlias),
       );
       if (found) return found;
     }
@@ -233,7 +234,9 @@ export class ProviderRegistry {
       );
     }
 
-    return Boolean(providerConfig.apiKey && this.config.env[providerConfig.apiKey]);
+    return Boolean(
+      providerConfig.apiKey && this.config.env[providerConfig.apiKey],
+    );
   }
 
   private configuredProviders(): ProviderId[] {
@@ -246,7 +249,9 @@ export class ProviderRegistry {
     const cfg = PROVIDER_ENV_CONFIG[pid];
     const apiKey = cfg.apiKey ? (this.config.env[cfg.apiKey] ?? "") : "";
     const baseUrl =
-      "baseUrl" in cfg && cfg.baseUrl ? this.config.env[cfg.baseUrl] : undefined;
+      "baseUrl" in cfg && cfg.baseUrl
+        ? this.config.env[cfg.baseUrl]
+        : undefined;
     return discoverModels(pid, apiKey, baseUrl, {
       allowInsecureCustomUrl: this.config.env.BAB_ALLOW_INSECURE_CUSTOM === "1",
     });
@@ -296,12 +301,15 @@ export class ProviderRegistry {
         model,
         prompt,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ...(Object.keys(providerOptions).length > 0 && { providerOptions: providerOptions as any }),
+        ...(Object.keys(providerOptions).length > 0 && {
+          providerOptions: providerOptions as any,
+        }),
         system: systemPrompt,
         temperature: options.temperature,
       });
 
-      const inputTokens = result.usage?.inputTokens ?? estimateTokenCount(prompt);
+      const inputTokens =
+        result.usage?.inputTokens ?? estimateTokenCount(prompt);
       const outputTokens =
         result.usage?.outputTokens ?? estimateTokenCount(result.text);
 

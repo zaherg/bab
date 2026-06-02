@@ -4,9 +4,9 @@ import { TESTGEN_SYSTEM_PROMPT } from "../../prompts/testgen";
 import type { ToolContext } from "../base";
 import { BaseWorkflowInputSchema } from "../base";
 import {
-  WorkflowRunner,
   type WorkflowPromptContext,
   type WorkflowRequestLike,
+  WorkflowRunner,
 } from "../workflow/runner";
 
 const TestgenInputSchema = BaseWorkflowInputSchema.omit({
@@ -31,7 +31,9 @@ function buildTestgenPrompt({
     `Current step:\n${request.step}`,
     `Findings so far:\n${request.findings}`,
     historyText ? `Conversation history:\n${historyText}` : "",
-    fileContext.embedded_text ? `Embedded files:\n${fileContext.embedded_text}` : "",
+    fileContext.embedded_text
+      ? `Embedded files:\n${fileContext.embedded_text}`
+      : "",
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -48,7 +50,13 @@ export function createTestgenTool(context: ToolContext) {
     context,
     description:
       "Creates comprehensive test suites with edge case coverage for specific functions, classes, or modules. Analyzes code paths, identifies failure modes, and generates framework-specific tests. Be specific about scope - target particular components rather than testing everything.",
-    formatPayload: ({ aiResult, continuationId, expertAnalysis, fileContext, request }) => ({
+    formatPayload: ({
+      aiResult,
+      continuationId,
+      expertAnalysis,
+      fileContext,
+      request,
+    }) => ({
       confidence: request.confidence ?? "low",
       continuation_id: continuationId,
       expert_analysis: expertAnalysis?.text,

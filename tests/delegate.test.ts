@@ -1,11 +1,14 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { discoverPluginDirectories } from "../src/delegate/discovery";
 import { loadPlugin, loadPlugins } from "../src/delegate/loader";
-import { getLoadedPlugins, invalidatePluginCache } from "../src/delegate/plugin-cache";
+import {
+  getLoadedPlugins,
+  invalidatePluginCache,
+} from "../src/delegate/plugin-cache";
 import { ProcessRunner } from "../src/delegate/process-runner";
 import { resolveRole } from "../src/delegate/roles";
 
@@ -30,7 +33,9 @@ describe("delegate discovery and loading", () => {
     const discoveredPlugins = await discoverPluginDirectories(pluginsRoot);
 
     expect(discoveredPlugins).toHaveLength(1);
-    expect(discoveredPlugins[0]?.manifestPath.endsWith("manifest.yaml")).toBeTrue();
+    expect(
+      discoveredPlugins[0]?.manifestPath.endsWith("manifest.yaml"),
+    ).toBeTrue();
   });
 
   test("skips invalid plugins while loading", async () => {
@@ -41,7 +46,10 @@ describe("delegate discovery and loading", () => {
     await mkdir(invalidPluginDirectory, { recursive: true });
     await mkdir(validPluginDirectory, { recursive: true });
 
-    await writeFile(join(invalidPluginDirectory, "manifest.yaml"), "id: invalid");
+    await writeFile(
+      join(invalidPluginDirectory, "manifest.yaml"),
+      "id: invalid",
+    );
     await writeFile(
       join(validPluginDirectory, "manifest.yaml"),
       [
@@ -140,7 +148,10 @@ describe("delegate role resolution", () => {
   test("prefers plugin-defined roles over built-in prompts", async () => {
     const pluginDirectory = await mkdtemp(join(tmpdir(), "bab-role-plugin-"));
 
-    await writeFile(join(pluginDirectory, "research.txt"), "Plugin research prompt");
+    await writeFile(
+      join(pluginDirectory, "research.txt"),
+      "Plugin research prompt",
+    );
     await writeFile(
       join(pluginDirectory, "manifest.yaml"),
       [
@@ -201,8 +212,12 @@ describe("delegate role resolution", () => {
 });
 
 describe("plugin-cache race conditions", () => {
-  beforeEach(() => { invalidatePluginCache(); });
-  afterEach(() => { invalidatePluginCache(); });
+  beforeEach(() => {
+    invalidatePluginCache();
+  });
+  afterEach(() => {
+    invalidatePluginCache();
+  });
 
   test("concurrent invalidate and load does not return stale data", async () => {
     const pluginsRoot = await mkdtemp(join(tmpdir(), "bab-cache-race-"));
@@ -296,10 +311,7 @@ describe("ProcessRunner", () => {
   test("captures stdout and stderr", async () => {
     const runner = new ProcessRunner();
     const result = await runner.run("test-stdout", {
-      args: [
-        "-e",
-        "console.log('hello'); console.error('oops');",
-      ],
+      args: ["-e", "console.log('hello'); console.error('oops');"],
       command: "bun",
       env: { ...process.env } as Record<string, string>,
       timeoutMs: 1_000,
@@ -314,10 +326,7 @@ describe("ProcessRunner", () => {
   test("terminates timed-out processes", async () => {
     const runner = new ProcessRunner();
     const result = await runner.run("test-timeout", {
-      args: [
-        "-e",
-        "setTimeout(() => console.log('done'), 5000);",
-      ],
+      args: ["-e", "setTimeout(() => console.log('done'), 5000);"],
       command: "bun",
       env: { ...process.env } as Record<string, string>,
       killGraceMs: 50,

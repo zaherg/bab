@@ -353,9 +353,7 @@ export async function regenerateSkills(
       try {
         resolvedSkillsDir = await realpath(agent.skillsDir);
       } catch {
-        stderr.write(
-          `Warning: cannot resolve ${agent.skillsDir}, skipping\n`,
-        );
+        stderr.write(`Warning: cannot resolve ${agent.skillsDir}, skipping\n`);
         skipped.push(agent.id);
         continue;
       }
@@ -371,7 +369,7 @@ export async function regenerateSkills(
         continue;
       }
 
-      if (!resolvedSkillsDir.startsWith(resolvedConfigDir + "/")) {
+      if (!resolvedSkillsDir.startsWith(`${resolvedConfigDir}/`)) {
         stderr.write(
           `Warning: ${agent.skillsDir} resolves outside config dir, skipping\n`,
         );

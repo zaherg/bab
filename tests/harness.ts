@@ -1,7 +1,6 @@
 import { cp, mkdir, mkdtemp, rm } from "node:fs/promises";
-import { basename } from "node:path";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -45,9 +44,7 @@ export class BabTestHarness {
     return this.client.listTools();
   }
 
-  async callTool(
-    params: CallToolRequest["params"],
-  ): Promise<CallToolResult> {
+  async callTool(params: CallToolRequest["params"]): Promise<CallToolResult> {
     return this.client.callTool(
       params,
       CallToolResultSchema,

@@ -3,7 +3,11 @@ import { z } from "zod/v4";
 import { CHALLENGE_WRAP_PREFIX } from "../../prompts/challenge";
 import type { RegisteredTool } from "../../server";
 import type { ToolOutput } from "../../types";
-import { createSuccessToolResult, createToolError, type ToolExecutionResult } from "../base";
+import {
+  createSuccessToolResult,
+  createToolError,
+  type ToolExecutionResult,
+} from "../base";
 
 const ChallengeInputSchema = z.object({
   prompt: z
@@ -45,7 +49,9 @@ export function createChallengeTool(): RegisteredTool {
         return {
           error: createToolError(
             "execution",
-            error instanceof Error ? error.message : "Challenge tool execution failed",
+            error instanceof Error
+              ? error.message
+              : "Challenge tool execution failed",
             error,
           ),
           ok: false,

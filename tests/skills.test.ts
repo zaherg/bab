@@ -2,10 +2,9 @@ import { describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, stat, symlink, utimes } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-
+import { registerCoreTools } from "../src/bootstrap";
 import type { BabConfig } from "../src/config";
 import { BabServer } from "../src/server";
-import { registerCoreTools } from "../src/bootstrap";
 import {
   generateSkillContent,
   STATIC_TOOL_NAMES,
@@ -29,7 +28,11 @@ function makeTempConfig(baseDir: string): BabConfig {
       pluginsDir: join(baseDir, "plugins"),
       promptsDir: join(baseDir, "prompts"),
     },
-    persistence: { enabled: false, enabledTools: new Set(), disabledTools: new Set() },
+    persistence: {
+      enabled: false,
+      enabledTools: new Set(),
+      disabledTools: new Set(),
+    },
   };
 }
 

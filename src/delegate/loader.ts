@@ -1,16 +1,16 @@
-import { pathToFileURL } from "node:url";
 import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 import YAML from "yaml";
 import { z } from "zod/v4";
 
 import { readInstallMetadata } from "../commands/shared";
-import { PluginManifestSchema } from "../types";
+import { OVERRIDABLE_TOOL_NAMES } from "../tools/overridable-tools";
 import type { PluginManifest } from "../types";
+import { PluginManifestSchema } from "../types";
 import { readPluginEnv } from "../utils/env";
 import { logger } from "../utils/logger";
 import { assertPathContainment } from "../utils/path";
-import { OVERRIDABLE_TOOL_NAMES } from "../tools/overridable-tools";
 import { wrapSimpleAdapter } from "./adapter-wrapper";
 import type {
   DelegatePluginAdapter,
@@ -49,7 +49,6 @@ function resolveAdapter(
   );
   return undefined;
 }
-
 
 async function verifyAdapterHash(
   adapterPath: string,
@@ -134,8 +133,7 @@ async function resolveToolPrompts(
       );
       resolved[toolName] = await Bun.file(resolvedPromptPath).text();
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : String(error);
+      const message = error instanceof Error ? error.message : String(error);
       logger.warn(
         `Skipping tool prompt "${toolName}" for plugin "${manifest.id}": ${message}`,
       );

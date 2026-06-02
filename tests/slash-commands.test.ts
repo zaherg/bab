@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
 
-import { getPrompt, listPrompts, PROMPT_NAMES } from "../src/prompts/slash-commands";
+import {
+  getPrompt,
+  listPrompts,
+  PROMPT_NAMES,
+} from "../src/prompts/slash-commands";
 
 describe("listPrompts", () => {
   test("returns all registered prompts", () => {
@@ -15,7 +19,7 @@ describe("listPrompts", () => {
       expect(prompt.name).toBeTruthy();
       expect(prompt.description).toBeTruthy();
       expect(prompt.arguments).toHaveLength(1);
-      expect(prompt.arguments![0].name).toBe("args");
+      expect(prompt.arguments?.[0].name).toBe("args");
     }
   });
 
@@ -39,7 +43,9 @@ describe("listPrompts", () => {
 
 describe("getPrompt", () => {
   test("throws for unknown prompt", () => {
-    expect(() => getPrompt("nonexistent", undefined)).toThrow("Unknown prompt: nonexistent");
+    expect(() => getPrompt("nonexistent", undefined)).toThrow(
+      "Unknown prompt: nonexistent",
+    );
   });
 
   test("simple prompt with args returns tool call instruction", () => {
@@ -108,8 +114,12 @@ describe("getPrompt", () => {
       expect(result.description).toBeTruthy();
       expect(result.messages).toHaveLength(1);
       expect(result.messages[0].role).toBe("user");
-      expect((result.messages[0].content as { type: string }).type).toBe("text");
-      expect((result.messages[0].content as { text: string }).text.length).toBeGreaterThan(0);
+      expect((result.messages[0].content as { type: string }).type).toBe(
+        "text",
+      );
+      expect(
+        (result.messages[0].content as { text: string }).text.length,
+      ).toBeGreaterThan(0);
     }
   });
 });

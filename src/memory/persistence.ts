@@ -61,15 +61,22 @@ export function extractSummary(content: string): string {
   }
 
   // First paragraph heuristic: take up to 3 sentences from the first non-empty paragraph
-  const firstPara = content.split(/\n\n+/u).find((p) => p.trim().length > 0) ?? "";
-  const cleaned = firstPara.replace(/^#+\s*/u, "").replace(/\*\*/gu, "").trim();
+  const firstPara =
+    content.split(/\n\n+/u).find((p) => p.trim().length > 0) ?? "";
+  const cleaned = firstPara
+    .replace(/^#+\s*/u, "")
+    .replace(/\*\*/gu, "")
+    .trim();
   const sentences = cleaned.match(/[^.!?]+[.!?]+/gu) ?? [];
   return sentences.slice(0, 3).join(" ").trim() || cleaned.slice(0, 200);
 }
 
 function buildFrontmatter(input: PersistReportInput): string {
   const modelLines = input.models
-    .map((m) => `  - id: ${m.id}\n    provider: ${m.provider}\n    role: ${m.role}`)
+    .map(
+      (m) =>
+        `  - id: ${m.id}\n    provider: ${m.provider}\n    role: ${m.role}`,
+    )
     .join("\n");
 
   const filesLine =
@@ -184,7 +191,11 @@ export async function persistReport(input: PersistReportInput): Promise<void> {
 
   try {
     // Check for existing report (continuation of a multi-step workflow)
-    const existingPath = await findExistingReport(toolName, continuationId, input.projectRoot);
+    const existingPath = await findExistingReport(
+      toolName,
+      continuationId,
+      input.projectRoot,
+    );
 
     if (existingPath) {
       const existing = await Bun.file(existingPath).text();
@@ -195,18 +206,42 @@ export async function persistReport(input: PersistReportInput): Promise<void> {
       }
       const nextStep = maxStep + 1;
       const stepHeading = `## Step ${nextStep}: ${input.inputText.slice(0, 80).trim()}`;
-      const appended = [existing.trimEnd(), "", stepHeading, "", input.content.trim()];
+      const appended = [
+        existing.trimEnd(),
+        "",
+        stepHeading,
+        "",
+        input.content.trim(),
+      ];
       if (input.expertContent) {
-        appended.push("", "### Expert Validation", "", input.expertContent.trim());
+        appended.push(
+          "",
+          "### Expert Validation",
+          "",
+          input.expertContent.trim(),
+        );
       }
       await Bun.write(existingPath, appended.join("\n"));
-      logger.debug("Persistence report step appended", { continuationId, path: existingPath, step: nextStep, tool: toolName });
+      logger.debug("Persistence report step appended", {
+        continuationId,
+        path: existingPath,
+        step: nextStep,
+        tool: toolName,
+      });
     } else {
       const reportContent = formatReport(input);
       const filename = buildFilename(input.inputText, continuationId);
-      const targetPath = await resolveTargetPath(toolName, filename, input.projectRoot);
+      const targetPath = await resolveTargetPath(
+        toolName,
+        filename,
+        input.projectRoot,
+      );
       await Bun.write(targetPath, reportContent);
-      logger.debug("Persistence report written", { continuationId, path: targetPath, tool: toolName });
+      logger.debug("Persistence report written", {
+        continuationId,
+        path: targetPath,
+        tool: toolName,
+      });
     }
   } catch (error) {
     if (!warnedIds.has(continuationId)) {

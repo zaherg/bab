@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { main as startServer } from "./bootstrap";
 import { runAddCommand as executeAddCommand } from "./commands/add";
 import { CommandError } from "./commands/errors";
 import { runListCommand as executeListCommand } from "./commands/list";
@@ -8,7 +9,6 @@ import { runRemoveCommand as executeRemoveCommand } from "./commands/remove";
 import { isBinaryInstall, runSelfUpdate } from "./commands/selfupdate";
 import { loadConfig } from "./config";
 import { validatePluginDirectory } from "./plugin-sdk/conformance";
-import { main as startServer } from "./bootstrap";
 import { VERSION } from "./version";
 
 interface WritableLike {
@@ -126,7 +126,9 @@ function renderBannerRow(
 ): string {
   const separator = left.length > 0 && right.length > 0 ? "  " : "";
   const plainContent = `${left}${separator}${right}`;
-  const padding = " ".repeat(Math.max(0, CLI_BANNER_WIDTH - plainContent.length));
+  const padding = " ".repeat(
+    Math.max(0, CLI_BANNER_WIDTH - plainContent.length),
+  );
 
   let styledRight = right;
 
@@ -159,8 +161,18 @@ function getCliBanner(tipIndex: number, color: boolean): string {
   const tip = CLI_TIPS[tipIndex] ?? CLI_TIPS[0];
   const rows = [
     renderBannerRow("", `Bab CLI v${VERSION}`, color, "title"),
-    renderBannerRow("", "MCP server, plugins, and CLI tools.", color, "subtitle"),
-    renderBannerRow("", "Add plugins, onboard agents, validate adapters.", color, "plain"),
+    renderBannerRow(
+      "",
+      "MCP server, plugins, and CLI tools.",
+      color,
+      "subtitle",
+    ),
+    renderBannerRow(
+      "",
+      "Add plugins, onboard agents, validate adapters.",
+      color,
+      "plain",
+    ),
     renderBannerRow("", `Tip: ${tip}`, color, "tip"),
   ];
 
@@ -454,7 +466,9 @@ export async function runCli(
       dependencies.stderr,
       getCliHelpText({
         color: shouldColorizeHelp(dependencies.stderr),
-        tipIndex: isInteractiveHelp(dependencies.stderr) ? pickCliTipIndex() : 0,
+        tipIndex: isInteractiveHelp(dependencies.stderr)
+          ? pickCliTipIndex()
+          : 0,
       }),
     );
     return 1;

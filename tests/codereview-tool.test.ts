@@ -24,16 +24,22 @@ describe("codereview tool", () => {
 
   afterAll(async () => {
     try {
-      if (reviewDirectory) await rm(reviewDirectory, { recursive: true, force: true });
+      if (reviewDirectory)
+        await rm(reviewDirectory, { recursive: true, force: true });
     } catch {}
   });
 
   test("embeds relevant files and runs expert validation on completion", async () => {
     const calls: Array<Record<string, unknown>> = [];
-    reviewDirectory = await mkdtemp(join(process.cwd(), ".bab-test-codereview-"));
+    reviewDirectory = await mkdtemp(
+      join(process.cwd(), ".bab-test-codereview-"),
+    );
     const reviewedFile = join(reviewDirectory, "reviewed.ts");
 
-    await writeFile(reviewedFile, "export function sum(a: number, b: number) { return a + b; }\n");
+    await writeFile(
+      reviewedFile,
+      "export function sum(a: number, b: number) { return a + b; }\n",
+    );
 
     const tool = createCodeReviewTool({
       conversationStore: new ConversationStore(),
@@ -56,7 +62,8 @@ describe("codereview tool", () => {
               timestamp: new Date("2026-03-10T12:00:00.000Z"),
             },
             steps: [],
-            text: calls.length === 1 ? "review-analysis" : "review-expert-analysis",
+            text:
+              calls.length === 1 ? "review-analysis" : "review-expert-analysis",
             usage: {
               inputTokens: 20,
               outputTokens: 5,
@@ -86,7 +93,9 @@ describe("codereview tool", () => {
 
     expect(calls).toHaveLength(2);
     expect(String(calls[0]?.prompt)).toContain(`FILE: ${reviewedFile}`);
-    expect(String(calls[1]?.prompt)).toContain("Validate and strengthen this code review.");
+    expect(String(calls[1]?.prompt)).toContain(
+      "Validate and strengthen this code review.",
+    );
 
     const payload = JSON.parse(result.value.content ?? "{}");
 

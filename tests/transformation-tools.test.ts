@@ -26,7 +26,8 @@ describe("transformation tools", () => {
 
   afterAll(async () => {
     try {
-      if (tempDirectory) await rm(tempDirectory, { recursive: true, force: true });
+      if (tempDirectory)
+        await rm(tempDirectory, { recursive: true, force: true });
     } catch {}
   });
 
@@ -90,7 +91,10 @@ describe("transformation tools", () => {
     tempDirectory = await mkdtemp(join(process.cwd(), ".bab-test-testgen-"));
     const sourceFile = join(tempDirectory, "service.ts");
 
-    await writeFile(sourceFile, "export async function loadUser(id: string) { return { id }; }\n");
+    await writeFile(
+      sourceFile,
+      "export async function loadUser(id: string) { return { id }; }\n",
+    );
 
     const tool = createTestgenTool({
       conversationStore: new ConversationStore(),

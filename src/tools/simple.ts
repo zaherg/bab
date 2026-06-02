@@ -8,12 +8,12 @@ import {
   createSuccessToolResult,
   createToolError,
   embedFiles,
+  type FileEmbeddingResult,
   prepareConversation,
-  remainingConversationTurns,
   recordConversationTurn,
+  remainingConversationTurns,
   selectModel,
   serializeUsage,
-  type FileEmbeddingResult,
   type ToolContext,
 } from "./base";
 
@@ -25,7 +25,9 @@ export interface SimpleToolRequest {
   thinking_mode?: string;
 }
 
-export interface SimpleToolExecutionContext<TRequest extends SimpleToolRequest> {
+export interface SimpleToolExecutionContext<
+  TRequest extends SimpleToolRequest,
+> {
   fileContext: FileEmbeddingResult;
   historyText: string;
   request: TRequest;
@@ -78,7 +80,9 @@ export function createSimpleTool<
           context.providerRegistry,
           request.model?.includes("/") ? undefined : request.model,
         );
-        const delegateModelId = request.model?.includes("/") ? request.model : undefined;
+        const delegateModelId = request.model?.includes("/")
+          ? request.model
+          : undefined;
         const conversation = await prepareConversation(
           context.conversationStore,
           request.continuation_id,
@@ -135,19 +139,18 @@ export function createSimpleTool<
         const storedThread = await context.conversationStore.getThread(
           conversation.continuationId,
         );
-        const payload =
-          formatPayload?.({
-            aiResult,
-            continuationId: conversation.continuationId,
-            fileContext,
-            request,
-          }) ?? {
-            continuation_id: conversation.continuationId,
-            embedded_files: fileContext.embedded_files,
-            provider: aiResult.provider,
-            response: aiResult.text,
-            usage: serializeUsage(aiResult.usage),
-          };
+        const payload = formatPayload?.({
+          aiResult,
+          continuationId: conversation.continuationId,
+          fileContext,
+          request,
+        }) ?? {
+          continuation_id: conversation.continuationId,
+          embedded_files: fileContext.embedded_files,
+          provider: aiResult.provider,
+          response: aiResult.text,
+          usage: serializeUsage(aiResult.usage),
+        };
         const toolOutput: ToolOutput = createJsonToolOutput(
           payload,
           {
@@ -165,7 +168,9 @@ export function createSimpleTool<
         return {
           error: createToolError(
             "execution",
-            error instanceof Error ? error.message : "Simple tool execution failed",
+            error instanceof Error
+              ? error.message
+              : "Simple tool execution failed",
             error,
           ),
           ok: false,

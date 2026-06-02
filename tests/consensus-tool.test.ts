@@ -57,7 +57,10 @@ describe("consensus tool", () => {
     });
     const tool = createConsensusTool({
       conversationStore: new ConversationStore(),
-      modelGateway: new ModelGateway(providerRegistry, createConfig({ OPENAI_API_KEY: "openai-key" })),
+      modelGateway: new ModelGateway(
+        providerRegistry,
+        createConfig({ OPENAI_API_KEY: "openai-key" }),
+      ),
       providerRegistry,
     });
     const result = await tool.execute({
@@ -128,7 +131,10 @@ describe("consensus tool", () => {
     });
     const tool = createConsensusTool({
       conversationStore: new ConversationStore(),
-      modelGateway: new ModelGateway(providerRegistry, createConfig({ OPENAI_API_KEY: "openai-key" })),
+      modelGateway: new ModelGateway(
+        providerRegistry,
+        createConfig({ OPENAI_API_KEY: "openai-key" }),
+      ),
       providerRegistry,
     });
     const result = await tool.execute({
@@ -163,7 +169,10 @@ describe("consensus tool", () => {
     });
     const tool = createConsensusTool({
       conversationStore: new ConversationStore(),
-      modelGateway: new ModelGateway(providerRegistry, createConfig({ OPENAI_API_KEY: "openai-key" })),
+      modelGateway: new ModelGateway(
+        providerRegistry,
+        createConfig({ OPENAI_API_KEY: "openai-key" }),
+      ),
       providerRegistry,
     });
     const result = await tool.execute({
@@ -187,7 +196,10 @@ describe("consensus tool", () => {
     });
     const tool = createConsensusTool({
       conversationStore: new ConversationStore(),
-      modelGateway: new ModelGateway(providerRegistry, createConfig({ OPENAI_API_KEY: "openai-key" })),
+      modelGateway: new ModelGateway(
+        providerRegistry,
+        createConfig({ OPENAI_API_KEY: "openai-key" }),
+      ),
       providerRegistry,
     });
     const result = await tool.execute({
