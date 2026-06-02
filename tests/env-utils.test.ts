@@ -109,6 +109,38 @@ describe("env utilities", () => {
     expect(merged.NODE_OPTIONS).toBeUndefined();
     expect(merged.SAFE_VAR).toBe("keep-me");
   });
+
+  test("mergeEnv strips common secret patterns from process env", () => {
+    const processEnv = {
+      XAI_API_KEY: "xai-secret",
+      AZURE_OPENAI_API_KEY: "azure-secret",
+      NPM_TOKEN: "npm-secret",
+      PYPI_TOKEN: "pypi-secret",
+      AWS_ACCESS_KEY_ID: "AKIA-test",
+      AWS_SECRET_ACCESS_KEY: "aws-secret",
+      AWS_SESSION_TOKEN: "session-token",
+      DOCKER_PASSWORD: "docker-pass",
+      MYAPP_CLIENT_SECRET: "client-secret",
+      MYAPP_API_SECRET: "api-secret",
+      SAFE_VAR: "keep-me",
+      MYAPP_MODE: "production",
+    };
+
+    const merged = mergeEnv(processEnv, {}, {});
+
+    expect(merged.XAI_API_KEY).toBeUndefined();
+    expect(merged.AZURE_OPENAI_API_KEY).toBeUndefined();
+    expect(merged.NPM_TOKEN).toBeUndefined();
+    expect(merged.PYPI_TOKEN).toBeUndefined();
+    expect(merged.AWS_ACCESS_KEY_ID).toBeUndefined();
+    expect(merged.AWS_SECRET_ACCESS_KEY).toBeUndefined();
+    expect(merged.AWS_SESSION_TOKEN).toBeUndefined();
+    expect(merged.DOCKER_PASSWORD).toBeUndefined();
+    expect(merged.MYAPP_CLIENT_SECRET).toBeUndefined();
+    expect(merged.MYAPP_API_SECRET).toBeUndefined();
+    expect(merged.SAFE_VAR).toBe("keep-me");
+    expect(merged.MYAPP_MODE).toBe("production");
+  });
 });
 
 describe("delegate loader env integration", () => {
