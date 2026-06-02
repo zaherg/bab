@@ -1,6 +1,6 @@
 {
   "name": "@babmcp/bab",
-  "version": "0.1.3-20260602",
+  "version": "0.1.4-20260602",
   "description": "Bab MCP server with delegate plugins, AI provider registry, and plugin author SDK.",
   "private": false,
   "type": "module",
