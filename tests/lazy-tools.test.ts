@@ -272,6 +272,17 @@ describe("Lazy tool loading — integration", () => {
     // tools meta-tool should NOT be present in eager mode
     expect(toolNames.has("tools")).toBeFalse();
   });
+
+  test("BAB_ENABLED_TOOLS restricts eager registration to the allowlist", async () => {
+    const harness = await createBabTestHarness([], {
+      BAB_EAGER_TOOLS: "1",
+      BAB_ENABLED_TOOLS: "version",
+    });
+    activeHarnesses.push(harness);
+
+    const result = await harness.listTools();
+    expect(result.tools.map((tool) => tool.name).sort()).toEqual(["version"]);
+  });
 });
 
 // ---------------------------------------------------------------------------

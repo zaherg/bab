@@ -3,7 +3,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { z } from "zod/v4";
 
-import { currentProcessEnv, sanitizeFileEnv } from "./utils/env";
+import { currentProcessEnv } from "./utils/env";
 
 const CONFIG_ROOT_DIR = ".config";
 const CONFIG_DIR_NAME = "bab";
@@ -61,6 +61,7 @@ export const BabEnvSchema = z
     BAB_DISABLED_TOOLS: CommaSeparatedList.optional(),
     BAB_ENABLED_TOOLS: CommaSeparatedList.optional(),
     BAB_CLI_TIMEOUT_MS: PositiveInt.optional(),
+    BAB_LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).optional(),
     BAB_MAX_CONCURRENT_PROCESSES: PositiveInt.optional(),
   })
   .passthrough();
@@ -195,7 +196,7 @@ export async function loadConfig(homeDirectory?: string): Promise<BabConfig> {
   const processEnv = currentProcessEnv();
 
   const env = {
-    ...sanitizeFileEnv(fileEnv),
+    ...fileEnv,
     ...processEnv,
   };
 

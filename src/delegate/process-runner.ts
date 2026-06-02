@@ -128,16 +128,7 @@ export class ProcessRunner {
 
       timeoutHandle = setTimeout(() => {
         timedOut = true;
-
-        if (!child.killed) {
-          child.kill("SIGTERM");
-        }
-
-        setTimeout(() => {
-          if (!child.killed) {
-            child.kill("SIGKILL");
-          }
-        }, killGraceMs).unref();
+        this.terminateChild(child, "SIGTERM", killGraceMs);
       }, timeoutMs);
 
       timeoutHandle.unref();
@@ -147,6 +138,7 @@ export class ProcessRunner {
   async cancel(
     runId?: string,
     signal: NodeJS.Signals = "SIGTERM",
+    killGraceMs = 5_000,
   ): Promise<void> {
     if (runId) {
       const child = this.activeProcesses.get(runId);
@@ -155,21 +147,43 @@ export class ProcessRunner {
         return;
       }
 
-      if (child.exitCode !== null) {
+      if (!this.isRunning(child)) {
         this.activeProcesses.delete(runId);
         return;
       }
 
       await new Promise<void>((resolve) => {
         child.once("close", () => resolve());
-        child.kill(signal);
+        this.terminateChild(child, signal, killGraceMs);
       });
       return;
     }
 
     await Promise.all(
-      [...this.activeProcesses.keys()].map((id) => this.cancel(id, signal)),
+      [...this.activeProcesses.keys()].map((id) =>
+        this.cancel(id, signal, killGraceMs),
+      ),
     );
+  }
+
+  private isRunning(child: ChildProcessWithoutNullStreams): boolean {
+    return child.exitCode === null && child.signalCode === null;
+  }
+
+  private terminateChild(
+    child: ChildProcessWithoutNullStreams,
+    signal: NodeJS.Signals,
+    killGraceMs: number,
+  ): void {
+    if (this.isRunning(child)) {
+      child.kill(signal);
+    }
+
+    setTimeout(() => {
+      if (this.isRunning(child)) {
+        child.kill("SIGKILL");
+      }
+    }, killGraceMs).unref();
   }
 
   private clearState(runId: string, timeoutHandle?: Timer): void {

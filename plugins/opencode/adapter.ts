@@ -7,7 +7,17 @@ function normalizeText(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
-function hasAnyKnownAuthEnv(): boolean {
+function processEnvRecord(): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(process.env).filter(
+      (entry): entry is [string, string] => typeof entry[1] === "string",
+    ),
+  );
+}
+
+function hasAnyKnownAuthEnv(
+  env: Record<string, string> = processEnvRecord(),
+): boolean {
   return [
     "OPENROUTER_API_KEY",
     "DEEPSEEK_API_KEY",
@@ -16,16 +26,18 @@ function hasAnyKnownAuthEnv(): boolean {
     "OPENAI_API_KEY",
     "ANTHROPIC_API_KEY",
     "GROQ_API_KEY",
-  ].some((name) => normalizeText(process.env[name]));
+  ].some((name) => normalizeText(env[name]));
 }
 
-function resolveModel(role: {
-  args?: Record<string, string | number | boolean>;
-  name: string;
-}): string | undefined {
+function resolveModel(
+  role: {
+    args?: Record<string, string | number | boolean>;
+    name: string;
+  },
+  env: Record<string, string> = processEnvRecord(),
+): string | undefined {
   const envModel =
-    normalizeText(process.env.BAB_OPENCODE_MODEL) ??
-    normalizeText(process.env.OPENCODE_MODEL);
+    normalizeText(env.BAB_OPENCODE_MODEL) ?? normalizeText(env.OPENCODE_MODEL);
 
   if (envModel) {
     return envModel;
@@ -37,15 +49,15 @@ function resolveModel(role: {
     return roleModel;
   }
 
-  if (normalizeText(process.env.DEEPSEEK_API_KEY)) {
+  if (normalizeText(env.DEEPSEEK_API_KEY)) {
     return "deepseek/deepseek-chat";
   }
 
-  if (normalizeText(process.env.KIMI_API_KEY)) {
+  if (normalizeText(env.KIMI_API_KEY)) {
     return "kimi-for-coding/k2p5";
   }
 
-  if (normalizeText(process.env.GITHUB_TOKEN)) {
+  if (normalizeText(env.GITHUB_TOKEN)) {
     return "github-copilot/gpt-5.2";
   }
 
@@ -218,7 +230,8 @@ const adapter = {
       ? `${rolePrompt}\n\n${input.prompt}`
       : input.prompt;
     const args = ["run", fullPrompt, "--format", "json"];
-    const model = resolveModel(input.role);
+    const commandEnv = input.env ?? processEnvRecord();
+    const model = resolveModel(input.role, commandEnv);
 
     if (model) {
       args.push("--model", model);
@@ -240,14 +253,6 @@ const adapter = {
 
       args.push(flag, String(value));
     }
-
-    const commandEnv =
-      input.env ??
-      Object.fromEntries(
-        Object.entries(process.env).filter(
-          (entry): entry is [string, string] => typeof entry[1] === "string",
-        ),
-      );
 
     if (model) {
       const modelsCheck = spawnSync(COMMAND, ["models"], {

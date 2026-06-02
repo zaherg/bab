@@ -16,6 +16,7 @@ import {
   readBundledPluginsFromDisk,
   renderBundledPluginsModule,
 } from "../scripts/bundle-plugins";
+import { bundledPlugins } from "../src/bundled-plugins.gen";
 import {
   BUNDLED_PLUGIN_IDS,
   getBundledPluginsRoot,
@@ -264,6 +265,13 @@ describe("bundled + installed coexistence", () => {
     // bundled plugins at install time, so the list must stay in sync with
     // whatever ships embedded in the binary.
     expect(BUNDLED_PLUGIN_IDS).toContain("opencode");
+  });
+
+  test("BUNDLED_PLUGIN_IDS exactly matches generated bundled plugins", () => {
+    const bundledPluginIds: string[] = [...BUNDLED_PLUGIN_IDS];
+
+    expect(bundledPluginIds).toEqual(["opencode"]);
+    expect(bundledPluginIds).toEqual(bundledPlugins.map((plugin) => plugin.id));
   });
 });
 

@@ -28,7 +28,11 @@ export function validateCustomApiUrl(
     throw new Error("CUSTOM_API_URL must use http:// or https://");
   }
 
-  if (url.protocol === "http:" && !allowInsecure) {
+  if (
+    url.protocol === "http:" &&
+    !allowInsecure &&
+    !isLoopbackHost(url.hostname)
+  ) {
     throw new Error(
       "CUSTOM_API_URL must use https:// unless BAB_ALLOW_INSECURE_CUSTOM=1",
     );
@@ -47,7 +51,11 @@ function isBlockedHost(hostname: string): boolean {
     .replace(/^\[(.*)\]$/u, "$1")
     .replace(/\.$/u, "");
 
-  if (normalized === "localhost" || normalized.endsWith(".localhost")) {
+  if (normalized === "localhost") {
+    return false;
+  }
+
+  if (normalized.endsWith(".localhost")) {
     return true;
   }
 
@@ -57,6 +65,19 @@ function isBlockedHost(hostname: string): boolean {
   }
 
   return isBlockedIpv6(normalized);
+}
+
+function isLoopbackHost(hostname: string): boolean {
+  const normalized = hostname
+    .toLowerCase()
+    .replace(/^\[(.*)\]$/u, "$1")
+    .replace(/\.$/u, "");
+
+  return (
+    normalized === "localhost" ||
+    normalized === "127.0.0.1" ||
+    normalized === "::1"
+  );
 }
 
 function parseIpv4(

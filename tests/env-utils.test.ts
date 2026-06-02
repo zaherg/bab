@@ -141,6 +141,34 @@ describe("env utilities", () => {
     expect(merged.SAFE_VAR).toBe("keep-me");
     expect(merged.MYAPP_MODE).toBe("production");
   });
+
+  test("mergeEnv strips global config secrets while preserving explicit plugin secrets", () => {
+    const merged = mergeEnv(
+      {
+        PATH: "/usr/bin",
+        SAFE_PROCESS: "process",
+      },
+      {
+        BAB_LOG_LEVEL: "debug",
+        GITHUB_TOKEN: "global-token",
+        GLOBAL_ONLY: "global",
+        MYAPP_CLIENT_SECRET: "global-secret",
+        OPENAI_API_KEY: "global-openai",
+      },
+      {
+        OPENAI_API_KEY: "plugin-openai",
+        PLUGIN_ONLY: "plugin",
+      },
+    );
+
+    expect(merged.BAB_LOG_LEVEL).toBeUndefined();
+    expect(merged.GITHUB_TOKEN).toBeUndefined();
+    expect(merged.MYAPP_CLIENT_SECRET).toBeUndefined();
+    expect(merged.GLOBAL_ONLY).toBe("global");
+    expect(merged.OPENAI_API_KEY).toBe("plugin-openai");
+    expect(merged.PLUGIN_ONLY).toBe("plugin");
+    expect(merged.SAFE_PROCESS).toBe("process");
+  });
 });
 
 describe("delegate loader env integration", () => {

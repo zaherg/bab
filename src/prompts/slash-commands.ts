@@ -122,6 +122,8 @@ function buildPromptText(entry: PromptEntry, userInput: string): string {
           ? `Context from the user: ${input}`
           : "Ask the user for context about what to analyze.",
         "",
+        "Set step to a concise description of the first work step.",
+        "Set findings to the initial observations, user context, or current hypothesis.",
         "Set step_number: 1, total_steps: 3 (adjust based on scope), next_step_required: true.",
         "Use a descriptive step name. If the user mentions files, include them in relevant_files.",
         "Continue calling the tool with increasing step_number until the response indicates completion.",
@@ -137,7 +139,8 @@ function buildPromptText(entry: PromptEntry, userInput: string): string {
           : "Ask the user what topic needs multi-model consensus.",
         "",
         "Set step_number: 1, total_steps: 3, next_step_required: true.",
-        "If the user requests specific models, include them. Otherwise let bab auto-select.",
+        "Set findings to the initial analysis or open question being evaluated.",
+        "Include models with at least two participants. If the user did not specify models, choose at least two available configured models before calling the tool, or ask which models to use.",
         "Continue until consensus is reached.",
       ].join("\n");
 

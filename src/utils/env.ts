@@ -78,6 +78,14 @@ function isFileEnvDenied(key: string): boolean {
   return FILE_ENV_DENYLIST.has(key) || key.startsWith("BAB_");
 }
 
+function isDelegateSecretEnv(key: string): boolean {
+  return (
+    PROCESS_ENV_STRIP_PREFIXES.some((prefix) => key.startsWith(prefix)) ||
+    DELEGATE_ENV_DENYLIST.has(key) ||
+    DELEGATE_ENV_STRIP_PATTERNS.some((pattern) => pattern(key))
+  );
+}
+
 export function currentProcessEnv(
   processEnv:
     | NodeJS.ProcessEnv
@@ -96,6 +104,16 @@ export function sanitizeFileEnv(
 ): Record<string, string> {
   return Object.fromEntries(
     Object.entries(values).filter(([key]) => !isFileEnvDenied(key)),
+  );
+}
+
+function sanitizeGlobalDelegateEnv(
+  values: Record<string, string>,
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(values).filter(
+      ([key]) => !isFileEnvDenied(key) && !isDelegateSecretEnv(key),
+    ),
   );
 }
 
@@ -125,18 +143,14 @@ export function mergeEnv(
   const base = currentProcessEnv(processEnv);
 
   for (const key of Object.keys(base)) {
-    if (
-      PROCESS_ENV_STRIP_PREFIXES.some((prefix) => key.startsWith(prefix)) ||
-      DELEGATE_ENV_DENYLIST.has(key) ||
-      DELEGATE_ENV_STRIP_PATTERNS.some((pattern) => pattern(key))
-    ) {
+    if (isDelegateSecretEnv(key)) {
       delete base[key];
     }
   }
 
   return {
     ...base,
-    ...sanitizeFileEnv(globalEnv),
+    ...sanitizeGlobalDelegateEnv(globalEnv),
     ...sanitizeFileEnv(pluginEnv),
   };
 }

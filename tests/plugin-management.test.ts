@@ -154,6 +154,12 @@ describe("source parser", () => {
       "Insecure http:// plugin sources are not allowed",
     );
   });
+
+  test("rejects git sources that could be parsed as clone options", () => {
+    expect(() => parseSource("--upload-pack=sh@example.com:repo.git")).toThrow(
+      'Plugin source URL must not start with "-"',
+    );
+  });
 });
 
 describe("plugin install command", () => {

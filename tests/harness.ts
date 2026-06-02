@@ -7,6 +7,9 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import type {
   CallToolRequest,
   CallToolResult,
+  GetPromptRequest,
+  GetPromptResult,
+  ListPromptsResult,
   ListToolsResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
@@ -42,6 +45,16 @@ export class BabTestHarness {
 
   async listTools(): Promise<ListToolsResult> {
     return this.client.listTools();
+  }
+
+  async listPrompts(): Promise<ListPromptsResult> {
+    return this.client.listPrompts();
+  }
+
+  async getPrompt(
+    params: GetPromptRequest["params"],
+  ): Promise<GetPromptResult> {
+    return this.client.getPrompt(params) as Promise<GetPromptResult>;
   }
 
   async callTool(params: CallToolRequest["params"]): Promise<CallToolResult> {

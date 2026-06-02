@@ -1,11 +1,12 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtemp, stat } from "node:fs/promises";
+import { mkdtemp, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import {
   ensureConfigDirectories,
   getConfigPaths,
+  loadConfig,
   parseEnvFile,
 } from "../src/config";
 
@@ -43,5 +44,20 @@ describe("config env parsing", () => {
       CUSTOM_API_URL: "https://example.com",
       OPENAI_API_KEY: "test-key",
     });
+  });
+
+  test("loads BAB_* config from ~/.config/bab/env", async () => {
+    const homeDirectory = await mkdtemp(join(tmpdir(), "bab-config-env-"));
+    const paths = await ensureConfigDirectories(getConfigPaths(homeDirectory));
+
+    await writeFile(
+      paths.envFile,
+      ["BAB_EAGER_TOOLS=1", "BAB_DISABLED_TOOLS=chat"].join("\n"),
+    );
+
+    const config = await loadConfig(homeDirectory);
+
+    expect(config.lazyTools).toBeFalse();
+    expect(config.env.BAB_DISABLED_TOOLS).toBe("chat");
   });
 });

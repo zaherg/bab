@@ -122,6 +122,7 @@ async function cloneRepository(
     "--depth",
     "1",
     "--template=/dev/null",
+    "--",
     source.url,
     cloneDirectory,
   ]);
@@ -147,6 +148,7 @@ async function cloneRepository(
   const fullClone = await runGit([
     "clone",
     "--template=/dev/null",
+    "--",
     source.url,
     cloneDirectory,
   ]);

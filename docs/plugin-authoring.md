@@ -130,7 +130,7 @@ Plugin env files bypass the process-env strip list — they are treated as expli
 
 | Variable | Description |
 |---|---|
-| `BAB_CLI_TIMEOUT_MS` | Override the default CLI timeout (default: 3 hours). Applies to all adapters. |
+| `BAB_CLI_TIMEOUT_MS` | Override the default CLI timeout (default: 5 minutes). Applies to all adapters. |
 | `BAB_MAX_CONCURRENT_PROCESSES` | Max concurrent delegate processes (default: 5). |
 
 ## Prompt Files
@@ -157,7 +157,7 @@ Available tool names:
 | Tool | Description |
 |------|-------------|
 | `chat` | General conversation |
-| `challenge` | Challenge/critique ideas |
+| `challenge` | Challenge/critique ideas; it does not call a model, so tool prompt overrides do not apply |
 | `thinkdeep` | Deep thinking/reasoning |
 | `codereview` | Code review |
 | `debug` | Debugging assistance |

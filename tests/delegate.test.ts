@@ -337,6 +337,32 @@ describe("ProcessRunner", () => {
     expect(result.exitCode === null || result.exitCode !== 0).toBeTrue();
   });
 
+  test("escalates timed-out processes that ignore SIGTERM", async () => {
+    const runner = new ProcessRunner();
+    const result = await Promise.race([
+      runner.run("test-timeout-ignore-term", {
+        args: [
+          "-e",
+          "process.on('SIGTERM', () => {}); setInterval(() => {}, 1000);",
+        ],
+        command: "bun",
+        env: { ...process.env } as Record<string, string>,
+        killGraceMs: 50,
+        timeoutMs: 100,
+      }),
+      Bun.sleep(1_500).then(() => "hung" as const),
+    ]);
+
+    expect(result).not.toBe("hung");
+    if (result === "hung") {
+      throw new Error("ProcessRunner did not escalate to SIGKILL");
+    }
+
+    expect(result.timedOut).toBeTrue();
+    expect(result.signal).toBe("SIGKILL");
+    expect(runner.activeCount).toBe(0);
+  });
+
   test("rejects new runs when concurrency limit is reached", async () => {
     const runner = new ProcessRunner(1);
 

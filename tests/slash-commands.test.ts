@@ -1,10 +1,19 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 
 import {
   getPrompt,
   listPrompts,
   PROMPT_NAMES,
 } from "../src/prompts/slash-commands";
+import { type BabTestHarness, createBabTestHarness } from "./harness";
+
+const activeHarnesses: BabTestHarness[] = [];
+
+afterEach(async () => {
+  while (activeHarnesses.length > 0) {
+    await activeHarnesses.pop()?.close();
+  }
+});
 
 describe("listPrompts", () => {
   test("returns all registered prompts", () => {
@@ -71,6 +80,7 @@ describe("getPrompt", () => {
     const text = (result.messages[0].content as { text: string }).text;
     expect(text).toContain("codereview");
     expect(text).toContain("step_number: 1");
+    expect(text).toContain("findings");
     expect(text).toContain("next_step_required: true");
     expect(text).toContain("check auth module");
   });
@@ -82,6 +92,29 @@ describe("getPrompt", () => {
     expect(text).toContain("consensus");
     expect(text).toContain("should we use GraphQL?");
     expect(text).toContain("multi-model");
+    expect(text).toContain("findings");
+    expect(text).toContain("models");
+    expect(text).toContain("at least two");
+    expect(text).not.toContain("auto-select");
+  });
+
+  test("MCP prompt round-trip exposes schema-complete workflow instructions", async () => {
+    const harness = await createBabTestHarness();
+    activeHarnesses.push(harness);
+
+    const prompts = await harness.listPrompts();
+    expect(prompts.prompts.map((prompt) => prompt.name)).toContain("review");
+
+    const result = await harness.getPrompt({
+      arguments: { args: "check auth module" },
+      name: "review",
+    });
+    const text = result.messages[0]?.content;
+
+    if (!text || text.type !== "text") throw new Error("Expected text prompt");
+    expect(text.text).toContain("codereview");
+    expect(text.text).toContain("findings");
+    expect(text.text).toContain("step_number: 1");
   });
 
   test("delegation prompt includes agent parsing guidance", () => {

@@ -21,6 +21,7 @@ interface ChatToolRequest {
   absolute_file_paths?: string[];
   continuation_id?: string;
   prompt: string;
+  thinking_mode?: "minimal" | "low" | "medium" | "high" | "max";
 }
 
 function createConfig(env: Record<string, string> = {}): BabConfig {
@@ -161,6 +162,39 @@ describe("simple tool framework", () => {
       await rm(tempDirectory, { force: true, recursive: true });
     }
   });
+
+  test("forwards thinking_mode to provider calls", async () => {
+    const calls: Array<Record<string, unknown>> = [];
+    const providerRegistry = createRegistry(calls);
+    const inputSchema = z.object({
+      prompt: z.string(),
+      thinking_mode: z
+        .enum(["minimal", "low", "medium", "high", "max"])
+        .optional(),
+    });
+    const tool = createSimpleTool<typeof inputSchema, ChatToolRequest>({
+      buildPrompt: ({ request }) => request.prompt,
+      context: {
+        conversationStore: new ConversationStore(),
+        modelGateway: {} as never,
+        providerRegistry,
+      },
+      description: "Test chat tool",
+      inputSchema,
+      name: "chat",
+      systemPrompt: "system",
+    });
+
+    const result = await tool.execute({
+      prompt: "think deeply",
+      thinking_mode: "high",
+    });
+
+    expect(result.ok).toBeTrue();
+    expect(calls[0]?.providerOptions).toEqual({
+      openai: { reasoningEffort: "high" },
+    });
+  });
 });
 
 describe("workflow framework", () => {
@@ -220,6 +254,49 @@ describe("workflow framework", () => {
 
     expect(payload.response).toBe("first-response");
     expect(payload.expert_analysis).toBe("follow-up-response");
+  });
+
+  test("forwards thinking_mode to workflow provider calls", async () => {
+    const calls: Array<Record<string, unknown>> = [];
+    const providerRegistry = createRegistry(calls);
+    const runner = new WorkflowRunner({
+      buildPrompt: ({ request }) => request.step,
+      context: {
+        conversationStore: new ConversationStore(),
+        modelGateway: {} as never,
+        providerRegistry,
+      },
+      description: "Test workflow tool",
+      formatPayload: ({ aiResult }) => ({ response: aiResult.text }),
+      inputSchema: z.object({
+        findings: z.string(),
+        next_step_required: z.boolean(),
+        step: z.string(),
+        step_number: z.number().int().min(1),
+        thinking_mode: z
+          .enum(["minimal", "low", "medium", "high", "max"])
+          .optional(),
+        total_steps: z.number().int().min(1),
+        use_assistant_model: z.boolean().optional(),
+      }),
+      name: "thinkdeep",
+      systemPrompt: "system",
+    });
+
+    const result = await runner.asTool().execute({
+      findings: "Collected evidence",
+      next_step_required: true,
+      step: "Investigate the issue",
+      step_number: 1,
+      thinking_mode: "medium",
+      total_steps: 2,
+      use_assistant_model: false,
+    });
+
+    expect(result.ok).toBeTrue();
+    expect(calls[0]?.providerOptions).toEqual({
+      openai: { reasoningEffort: "medium" },
+    });
   });
 
   test("runs expert analysis when confidence is certain even if next_step_required is true", async () => {

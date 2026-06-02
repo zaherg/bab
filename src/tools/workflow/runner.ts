@@ -1,6 +1,9 @@
 import type { z } from "zod/v4";
 
-import type { GenerateTextResult } from "../../providers/registry";
+import type {
+  GenerateTextResult,
+  ThinkingMode,
+} from "../../providers/registry";
 import type { RegisteredTool } from "../../server";
 import type { ToolOutput } from "../../types";
 import {
@@ -28,7 +31,7 @@ export interface WorkflowRequestLike {
   step: string;
   step_number: number;
   temperature?: number;
-  thinking_mode?: string;
+  thinking_mode?: ThinkingMode;
   total_steps: number;
   use_assistant_model?: boolean;
 }
@@ -124,6 +127,7 @@ export class WorkflowRunner<
           prompt,
           this.config.systemPrompt,
           {
+            thinkingMode: parsedRequest.thinking_mode,
             temperature: parsedRequest.temperature,
             toolName: this.config.name,
           },
@@ -135,6 +139,7 @@ export class WorkflowRunner<
           this.config.systemPrompt,
           {
             maxOutputTokens: this.config.maxOutputTokens,
+            thinkingMode: parsedRequest.thinking_mode,
             temperature: parsedRequest.temperature,
           },
         );
@@ -163,6 +168,7 @@ export class WorkflowRunner<
             expertPrompt,
             this.config.systemPrompt,
             {
+              thinkingMode: parsedRequest.thinking_mode,
               temperature: parsedRequest.temperature,
               toolName: this.config.name,
             },
@@ -174,6 +180,7 @@ export class WorkflowRunner<
             this.config.systemPrompt,
             {
               maxOutputTokens: this.config.maxOutputTokens,
+              thinkingMode: parsedRequest.thinking_mode,
               temperature: parsedRequest.temperature,
             },
           );

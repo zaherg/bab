@@ -67,4 +67,23 @@ describe("OpenCode plugin parser", () => {
       roles: ["default", "planner", "codereviewer", "researcher"],
     });
   });
+
+  test("buildCommand resolves OpenCode model from delegate env", () => {
+    const command = adapter.buildCommand({
+      env: {
+        OPENCODE_MODEL: "openai/gpt-5",
+        PATH: "/nonexistent",
+      },
+      prompt: "User task",
+      role: {
+        args: {},
+        name: "default",
+        prompt: "Role prompt",
+      },
+    });
+
+    expect(command.env.OPENCODE_MODEL).toBe("openai/gpt-5");
+    expect(command.args).toContain("--model");
+    expect(command.args).toContain("openai/gpt-5");
+  });
 });

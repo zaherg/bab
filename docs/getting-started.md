@@ -99,7 +99,7 @@ Install the first-party external plugins:
 bab add git@github.com:babmcp/plugins.git
 ```
 
-> **Security note:** Plugin adapters run as trusted code with full access to your filesystem and network. Bab will always prompt for confirmation before installing. Only install plugins from sources you trust.
+> **Security note:** Plugin adapters run as trusted code with full access to your filesystem and network. Bab prompts for confirmation before installing unless you pass `--yes`. Only install plugins from sources you trust.
 
 List bundled and installed plugins:
 

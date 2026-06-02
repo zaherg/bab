@@ -173,7 +173,7 @@ Bab has two ways to call AI models:
 
 | | Provider Registry | Delegate Plugins |
 |---|---|---|
-| **Used by** | `chat`, `thinkdeep`, `codereview`, `consensus`, all workflow tools | `delegate` tool only |
+| **Used by** | Direct provider models for `chat`, `thinkdeep`, `codereview`, `consensus`, and workflow tools | `delegate`, plus model-backed tools when a model ID uses `<plugin-id>/<model>` |
 | **How it works** | Direct API calls via AI SDK | Spawns external CLI process |
 | **Configuration** | API keys in env | Plugin adapter.ts + manifest.yaml |
 | **Models** | Static registry (Gemini, GPT, Claude, etc.) + dynamic discovery for providers that support it | CLI-specific (whatever the CLI supports) |

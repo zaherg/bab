@@ -68,7 +68,7 @@ describe("OpenCode plugin integration", () => {
       [join(process.cwd(), "plugins/opencode")],
       {
         OPENCODE_CAPTURE_DIR: captureDirectory,
-        BAB_OPENCODE_MODEL: "deepseek/deepseek-chat",
+        OPENCODE_MODEL: "deepseek/deepseek-chat",
         PATH: `${binDirectory}:${process.env.PATH ?? ""}`,
       },
     );

@@ -27,6 +27,12 @@ function assertSafeGitRef(ref: string): void {
   }
 }
 
+function assertSafeGitUrl(source: string): void {
+  if (source.startsWith("-")) {
+    throw new CommandError('Plugin source URL must not start with "-"');
+  }
+}
+
 function splitRef(value: string): { ref?: string; source: string } {
   const hashIndex = value.indexOf("#");
 
@@ -73,6 +79,8 @@ export function parseSource(input: string): ParsedSource {
   if (!source) {
     throw new CommandError("Plugin source must not be empty");
   }
+
+  assertSafeGitUrl(source);
 
   const shorthandMatch = source.match(GITHUB_SHORTHAND_PATTERN);
 

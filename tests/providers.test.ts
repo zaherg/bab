@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 
 import type { BabConfig } from "../src/config";
+import { customProviderBaseUrl } from "../src/providers/custom-url";
 import { clearDiscoveryCache } from "../src/providers/model-discovery";
 import { ProviderRegistry } from "../src/providers/registry";
 import { estimateTokenCount } from "../src/utils/tokens";
@@ -46,6 +47,20 @@ describe("ProviderRegistry", () => {
 
     expect(models.map((model) => model.provider)).toContain("openai");
     expect(models.map((model) => model.provider)).toContain("custom");
+  });
+
+  test("allows explicit loopback custom provider URLs for local OpenAI-compatible servers", () => {
+    expect(
+      customProviderBaseUrl({ CUSTOM_API_URL: "http://localhost:11434/v1" }),
+    ).toBe("http://localhost:11434/v1");
+  });
+
+  test("still rejects non-loopback insecure custom provider URLs by default", () => {
+    expect(() =>
+      customProviderBaseUrl({ CUSTOM_API_URL: "http://example.com/v1" }),
+    ).toThrow(
+      "CUSTOM_API_URL must use https:// unless BAB_ALLOW_INSECURE_CUSTOM=1",
+    );
   });
 
   test("resolves model aliases", async () => {

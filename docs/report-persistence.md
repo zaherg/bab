@@ -6,9 +6,9 @@ nav_order: 8
 
 # Report Persistence
 
-Workflow tools (`thinkdeep`, `codereview`, `debug`, `analyze`, `refactor`, `secaudit`, `testgen`, `docgen`, `precommit`, `tracer`, `consensus`, `planner`, `challenge`) can write structured markdown reports to disk so users can read, share, and re-read results after the MCP response returns.
+Workflow tools can write structured markdown reports to disk so users can read, share, and re-read results after the MCP response returns.
 
-Persistence is enabled by default for every workflow tool.
+Persistence is enabled by default for `analyze`, `debug`, `tracer`, `secaudit`, `refactor`, `codereview`, `planner`, `thinkdeep`, and `consensus`. Optional tools such as `testgen`, `docgen`, `precommit`, and `challenge` persist only when listed in `BAB_PERSIST_TOOLS`.
 
 ## Output Paths
 

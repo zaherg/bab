@@ -55,8 +55,18 @@ export function registerCoreTools(
     providerRegistry,
   };
 
+  const enabled = parseDisabledTools(config.env.BAB_ENABLED_TOOLS);
   const disabled = parseDisabledTools(config.env.BAB_DISABLED_TOOLS);
   const manifest = buildToolManifest(toolContext, providerRegistry, config);
+
+  if (enabled.size > 0) {
+    for (const name of [...manifest.keys()]) {
+      if (!enabled.has(name)) {
+        logger.info("Tool omitted via BAB_ENABLED_TOOLS", { tool: name });
+        manifest.delete(name);
+      }
+    }
+  }
 
   // Filter disabled tools out of the manifest entirely
   for (const name of disabled) {
@@ -136,8 +146,11 @@ function installSignalHandlers(server: BabServer): () => void {
 }
 
 export async function main(): Promise<void> {
-  await configureLogging();
   const config = await loadConfig();
+  if (config.env.BAB_LOG_LEVEL) {
+    process.env.BAB_LOG_LEVEL = config.env.BAB_LOG_LEVEL;
+  }
+  await configureLogging();
   const server = new BabServer();
   registerCoreTools(server, config);
   const removeSignalHandlers = installSignalHandlers(server);

@@ -47,13 +47,13 @@ The delegate tool discovers and invokes external CLI tools through a plugin syst
 ## Key Features
 
 - **Multi-CLI support**: Works with Claude Code, Codex, Copilot, OpenCode, and any CLI with a plugin adapter
-- **Plugin ecosystem**: Bundled plugins ship with bab; external plugins installable via `bab add <git-url>` or `bab add <directory>`
+- **Plugin ecosystem**: Bundled plugins ship with bab; external plugins installable via `bab add <git-url>`
 - **Role presets**: Named role configurations that customize the prompt behavior per plugin
 - **Working directory validation**: Run CLI tools in any directory within project root, home, or tmp
 - **Summary extraction**: Automatically extracts `<SUMMARY>` tags for concise output
 - **Output truncation**: Caps response at 20,000 characters to prevent protocol overflow
 - **Per-plugin logging**: Each plugin logs to `~/.config/bab/logs/<plugin-id>.log`
-- **Configurable timeout**: Set via `BAB_CLI_TIMEOUT_MS` environment variable (default: 3 hours)
+- **Configurable timeout**: Set via `BAB_CLI_TIMEOUT_MS` environment variable (default: 5 minutes)
 - **Plugin caching**: 5-second TTL cache for plugin discovery to avoid repeated filesystem scans
 
 ## Tool Parameters
@@ -70,10 +70,7 @@ The delegate tool discovers and invokes external CLI tools through a plugin syst
 bab add https://github.com/user/bab-plugin-claude.git
 ```
 
-**Install a plugin from a local directory:**
-```bash
-bab add /path/to/my-plugin
-```
+Local directory installation is not supported by `bab add`; use `bab test-plugin /path/to/my-plugin` for local validation before publishing to git.
 
 **Available plugins:**
 - `opencode` - Bundled with bab
@@ -115,7 +112,7 @@ bab add /path/to/my-plugin
 - **Keep prompts focused**: Each delegation is a single CLI invocation; break complex tasks into multiple calls
 - **Check plugin availability**: Ensure the target CLI is installed and accessible in your PATH
 - **Use `<SUMMARY>` tags** in plugin prompts when you want concise output back
-- **Adjust timeout** via `BAB_CLI_TIMEOUT_MS` for long-running tasks (default is 3 hours)
+- **Adjust timeout** via `BAB_CLI_TIMEOUT_MS` for long-running tasks (default is 5 minutes)
 
 ## When to Use Delegate vs Other Tools
 

@@ -2,8 +2,12 @@ import { describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { BabConfig } from "../src/config";
 import { discoverPluginDirectories } from "../src/delegate/discovery";
 import { loadPlugin } from "../src/delegate/loader";
+import { invalidatePluginCache } from "../src/delegate/plugin-cache";
+import { ModelGateway } from "../src/providers/model-gateway";
+import { ProviderRegistry } from "../src/providers/registry";
 import { PluginManifestSchema } from "../src/types";
 
 const BASE_MANIFEST = {
@@ -13,6 +17,24 @@ const BASE_MANIFEST = {
   command: "echo",
   roles: ["default"],
 };
+
+function createConfig(pluginsDir: string): BabConfig {
+  return {
+    env: {},
+    lazyTools: false,
+    paths: {
+      baseDir: join(pluginsDir, ".."),
+      envFile: join(pluginsDir, "..", "env"),
+      pluginsDir,
+      promptsDir: join(pluginsDir, "..", "prompts"),
+    },
+    persistence: {
+      disabledTools: new Set(),
+      enabled: false,
+      enabledTools: new Set(),
+    },
+  };
+}
 
 describe("tool_prompts manifest schema", () => {
   test("parses manifest with tool_prompts", () => {
@@ -250,5 +272,75 @@ describe("tool_prompts loader caching", () => {
 
     // Bad prompt entry is skipped; plugin still loads
     expect(loaded.resolvedToolPrompts).toBeUndefined();
+  });
+
+  test("ModelGateway uses plugin tool prompt overrides for plugin model calls", async () => {
+    const pluginsRoot = await mkdtemp(join(tmpdir(), "bab-tp-gateway-"));
+    const pluginDir = join(pluginsRoot, "gateway-plugin");
+    const promptsDir = join(pluginDir, "prompts");
+
+    await mkdir(promptsDir, { recursive: true });
+    await writeFile(join(promptsDir, "codereview.txt"), "PLUGIN SYSTEM");
+    await writeFile(
+      join(pluginDir, "manifest.yaml"),
+      [
+        "id: gateway-plugin",
+        "name: Gateway Plugin",
+        "version: 1.0.0",
+        "command: echo",
+        "roles:",
+        "  - default",
+        "tool_prompts:",
+        "  codereview: prompts/codereview.txt",
+      ].join("\n"),
+    );
+    const adapterContent = [
+      "export default {",
+      "  async run(input) {",
+      "    return [{ type: 'output', content: input.prompt }];",
+      "  },",
+      "};",
+    ].join("\n");
+    await writeFile(join(pluginDir, "adapter.ts"), adapterContent);
+    const hasher = new Bun.CryptoHasher("sha256");
+    hasher.update(adapterContent);
+    await writeFile(
+      join(pluginDir, ".install.json"),
+      JSON.stringify({
+        adapter_hash: hasher.digest("hex"),
+        installed_at: new Date(0).toISOString(),
+        installer_version: "test",
+        manifest_name: "Gateway Plugin",
+        manifest_version: "1.0.0",
+        plugin_id: "gateway-plugin",
+        plugin_subdir: ".",
+        resolved_commit: "test",
+        schema_version: 1,
+        source_original: "test",
+        source_url: "https://example.com/test.git",
+      }),
+    );
+    invalidatePluginCache();
+
+    try {
+      const config = createConfig(pluginsRoot);
+      const gateway = new ModelGateway(
+        new ProviderRegistry({ config }),
+        config,
+      );
+
+      const result = await gateway.query(
+        "gateway-plugin/model-a",
+        "USER PROMPT",
+        "BUILTIN SYSTEM",
+        { toolName: "codereview" },
+      );
+
+      expect(result.text).toContain("PLUGIN SYSTEM");
+      expect(result.text).toContain("USER PROMPT");
+      expect(result.text).not.toContain("BUILTIN SYSTEM");
+    } finally {
+      invalidatePluginCache();
+    }
   });
 });

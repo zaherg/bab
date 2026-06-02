@@ -1,6 +1,6 @@
 import type { z } from "zod/v4";
 
-import type { GenerateTextResult } from "../providers/registry";
+import type { GenerateTextResult, ThinkingMode } from "../providers/registry";
 import type { RegisteredTool } from "../server";
 import type { ToolOutput } from "../types";
 import {
@@ -22,7 +22,7 @@ export interface SimpleToolRequest {
   continuation_id?: string;
   model?: string;
   temperature?: number;
-  thinking_mode?: string;
+  thinking_mode?: ThinkingMode;
 }
 
 export interface SimpleToolExecutionContext<
@@ -111,6 +111,7 @@ export function createSimpleTool<
             prompt,
             systemPrompt,
             {
+              thinkingMode: request.thinking_mode,
               temperature: request.temperature,
               toolName: name,
             },
@@ -122,6 +123,7 @@ export function createSimpleTool<
             systemPrompt,
             {
               maxOutputTokens,
+              thinkingMode: request.thinking_mode,
               temperature: request.temperature,
             },
           );
