@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
-# Brace-around-vars (SC2250) and [[ vs [ (SC2292) are pure cosmetics; the
-# surrounding code is already explicit, so suppress them globally.
-# shellcheck disable=SC2250,SC2292
 set -euo pipefail
 
 # ── Constants ───────────────────────────────────────────────────────

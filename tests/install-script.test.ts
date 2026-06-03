@@ -118,6 +118,10 @@ describe("scripts/install.sh — safety hardening", () => {
     expect(source).toMatch(/^set -euo pipefail$/m);
   });
 
+  test("avoids version-specific ShellCheck disable directives", () => {
+    expect(source).not.toMatch(/^# shellcheck disable=SC2250,SC2292$/m);
+  });
+
   test("validates HOME is set under set -u", () => {
     expect(source).toMatch(/^: "\$\{HOME:\?/m);
   });
@@ -252,6 +256,11 @@ describe("scripts/install.sh — lint and parse", () => {
     "shellcheck at default severity is clean",
     async () => {
       const out = await run(["shellcheck", SCRIPT]);
+      if (out.exit !== 0) {
+        throw new Error(
+          `shellcheck exited ${out.exit}\nstdout:\n${out.stdout}\nstderr:\n${out.stderr}`,
+        );
+      }
       expect(out.exit).toBe(0);
     },
   );
