@@ -15,6 +15,7 @@ import { join } from "node:path";
 
 import { z } from "zod/v4";
 import type { WritableLike } from "../commands/shared";
+import { logger } from "../utils/logger";
 
 import { VERSION } from "../version";
 
@@ -215,7 +216,9 @@ async function releaseLock(skillsDir: string): Promise<void> {
   await rm(join(skillsDir, LOCK_DIR_NAME), {
     force: true,
     recursive: true,
-  }).catch(() => {});
+  }).catch((e) =>
+    logger.debug("failed to release skills lock", { error: String(e) }),
+  );
 }
 
 async function cleanupOrphanDirs(skillsDir: string): Promise<void> {
@@ -230,7 +233,12 @@ async function cleanupOrphanDirs(skillsDir: string): Promise<void> {
         await rm(join(skillsDir, entry), {
           force: true,
           recursive: true,
-        }).catch(() => {});
+        }).catch((e) =>
+          logger.debug("failed to clean orphan skills dir", {
+            entry,
+            error: String(e),
+          }),
+        );
       }
     }
   } catch {
@@ -294,7 +302,12 @@ async function writeSkillDirectory(
       }
     }
 
-    await rm(stagingDir, { force: true, recursive: true }).catch(() => {});
+    await rm(stagingDir, { force: true, recursive: true }).catch((e) =>
+      logger.debug("failed to clean skills staging dir", {
+        stagingDir,
+        error: String(e),
+      }),
+    );
 
     throw error;
   }
