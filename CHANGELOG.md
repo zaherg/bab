@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Update plugin installation instructions in README.
 - Harden installer and move to scripts/install.sh.
+- Bump version 0.1.6-20260603.
+- Update release script.
 
 ## [0.1.5-20260602] - 2026-06-02
 
