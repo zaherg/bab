@@ -29,19 +29,22 @@ echo "Current: $CURRENT -> New: $VERSION"
 echo "1. Bumping version to $VERSION..."
 sed -i.bak "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" package.json && rm -f package.json.bak
 
-echo "2. Running changelog workflow..."
+echo "2. Commit and push"
+git add package.json && git commit -m "bump version $VERSION" && git push
+
+echo "3. Running changelog workflow..."
 gh workflow run Changelog --field version="$VERSION"
 
-echo "3. Sleeping 10s for changelog to complete..."
+echo "4. Sleeping 10s for changelog to complete..."
 sleep 10
 
-echo "4. Pulling changelog changes..."
+echo "5. Pulling changelog changes..."
 git pull
 
-echo "5. Creating tag v$VERSION..."
+echo "6. Creating tag v$VERSION..."
 git tag "v$VERSION"
 
-echo "6. Pushing tag..."
+echo "7. Pushing tag..."
 git push --tags
 
 echo "Done. Release v$VERSION tagged and pushed."
