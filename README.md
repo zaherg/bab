@@ -106,7 +106,12 @@ bab serve
 Install first-party plugins:
 
 ```bash
-bab add git@github.com:zaherg/bab-plugins.git
+bab add https://github.com/zaherg/bab-plugins
+
+# OR
+
+bab add zaherg/bab-plugins
+
 ```
 
 Run the test suite:
