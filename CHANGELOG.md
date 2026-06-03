@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.1.6-20260603] - 2026-06-03
+
+### Added
+
+- Add release.sh script with auto version bump.
+- Security hardening — env immutability, log redaction, buffer cap, path containment.
+- Add install-script.test.ts covering installer hardening.
+
+### Changed
+
+- Update repo references from babmcp to zaherg.
+
+### Other
+
+- Update plugin installation instructions in README.
+- Harden installer and move to scripts/install.sh.
+
 ## [0.1.5-20260602] - 2026-06-02
 
 ### Other
