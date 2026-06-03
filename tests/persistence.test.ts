@@ -141,6 +141,27 @@ describe("persistReport", () => {
     expect(results.every((r) => r.status === "fulfilled")).toBeTrue();
   });
 
+  test("resolves symlinked project root to real path", async () => {
+    const tmpRoot = await mktemp();
+    const realDir = join(tmpRoot, "real-project");
+    const linkDir = join(tmpRoot, "link-project");
+    await mkdir(realDir, { recursive: true });
+    const { symlink, realpath: rp } = await import("node:fs/promises");
+    await symlink(realDir, linkDir);
+
+    await persistReport(
+      p("debug", "symlink test", "cont-symlink", "# Symlink Report", linkDir),
+    );
+
+    const realFiles = await readdir(join(realDir, ".bab", "debug"));
+    expect(realFiles).toHaveLength(1);
+    expect(realFiles[0]).toContain("symlink-test");
+
+    // Verify no file at the symlink path (it was resolved to real)
+    const resolvedLink = await rp(linkDir);
+    expect(resolvedLink).toBe(await rp(realDir));
+  });
+
   test("uses fallback reports dir when no project root provided", async () => {
     // Verify it doesn't throw; the fallback dir is ~/.config/bab/reports.
     // We pass a unique continuation ID so we can check the file was written there.

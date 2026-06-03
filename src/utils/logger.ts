@@ -54,25 +54,31 @@ function wrap(category: string[]): WrappedLogger {
   };
 }
 
+/**
+ * Redaction rules applied to per-plugin log output and stderr.
+ * Redaction is best-effort defense-in-depth — the primary defense is env
+ * stripping before the subprocess is spawned. Word boundaries (\b) do not
+ * span newlines, and exotic encodings may evade these patterns.
+ */
 const SECRET_REDACTION_PATTERNS: Array<{
   pattern: RegExp;
   replacement: string;
 }> = [
-  { pattern: /\b(sk|pk)-[a-zA-Z0-9]{20,}\b/g, replacement: "$1-[REDACTED]" },
+  { pattern: /\b(sk|pk)-[a-zA-Z0-9]{20,}\b/gi, replacement: "$1-[REDACTED]" },
   {
-    pattern: /\bsk-ant-[a-zA-Z0-9]{20,}\b/g,
+    pattern: /\bsk-ant-[a-zA-Z0-9]{20,}\b/gi,
     replacement: "sk-ant-[REDACTED]",
   },
   {
-    pattern: /\b(ghp|gho|ghu|ghs|ghr)_[a-zA-Z0-9]{36,}\b/g,
+    pattern: /\b(ghp|gho|ghu|ghs|ghr)_[a-zA-Z0-9]{36,}\b/gi,
     replacement: "$1_[REDACTED]",
   },
   {
-    pattern: /\b(xox[abpsr]?)-[a-zA-Z0-9-]{20,}\b/g,
+    pattern: /\b(xox[abpsr]?)-[a-zA-Z0-9-]{20,}\b/gi,
     replacement: "$1-[REDACTED]",
   },
   {
-    pattern: /Bearer\s+[a-zA-Z0-9._-]{20,}/g,
+    pattern: /Bearer\s+[a-zA-Z0-9._-]{20,}/gi,
     replacement: "Bearer [REDACTED]",
   },
   { pattern: /\bAIza[0-9A-Za-z_-]{35}\b/g, replacement: "[REDACTED]" },

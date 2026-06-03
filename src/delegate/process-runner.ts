@@ -93,13 +93,15 @@ export class ProcessRunner {
       child.stderr.setEncoding("utf8");
 
       child.stdout.on("data", (chunk: string) => {
-        if (stdout.length < MAX_CAPTURE_BYTES) {
-          stdout += chunk;
+        const remaining = MAX_CAPTURE_BYTES - stdout.length;
+        if (remaining > 0) {
+          stdout += chunk.slice(0, remaining);
         }
       });
       child.stderr.on("data", (chunk: string) => {
-        if (stderr.length < MAX_CAPTURE_BYTES) {
-          stderr += chunk;
+        const remaining = MAX_CAPTURE_BYTES - stderr.length;
+        if (remaining > 0) {
+          stderr += chunk.slice(0, remaining);
         }
       });
 

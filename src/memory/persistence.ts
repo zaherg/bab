@@ -1,4 +1,4 @@
-import { mkdir, readdir } from "node:fs/promises";
+import { mkdir, readdir, realpath } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -132,7 +132,9 @@ async function resolveTargetPath(
   filename: string,
   projectRoot?: string,
 ): Promise<string> {
-  const base = projectRoot ?? FALLBACK_REPORTS_DIR;
+  const raw = projectRoot ?? FALLBACK_REPORTS_DIR;
+  await mkdir(raw, { recursive: true });
+  const base = await realpath(raw);
   const dir = join(base, ".bab", toolName);
   await mkdir(dir, { recursive: true });
 
@@ -156,7 +158,13 @@ async function findExistingReport(
   continuationId: string,
   projectRoot?: string,
 ): Promise<string | undefined> {
-  const base = projectRoot ?? FALLBACK_REPORTS_DIR;
+  const raw = projectRoot ?? FALLBACK_REPORTS_DIR;
+  let base: string;
+  try {
+    base = await realpath(raw);
+  } catch {
+    return undefined;
+  }
   const dir = join(base, ".bab", toolName);
 
   try {

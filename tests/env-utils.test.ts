@@ -142,6 +142,20 @@ describe("env utilities", () => {
     expect(merged.MYAPP_MODE).toBe("production");
   });
 
+  test("mergeEnv does not mutate the object returned by currentProcessEnv", () => {
+    const { currentProcessEnv } = require("../src/utils/env");
+    const original = currentProcessEnv({
+      ANTHROPIC_API_KEY: "sk-ant-secret",
+      SAFE_VAR: "keep-me",
+    });
+    const snapshot = { ...original };
+
+    mergeEnv({ ANTHROPIC_API_KEY: "sk-ant-secret", SAFE_VAR: "keep-me" }, {}, {});
+
+    expect(original).toEqual(snapshot);
+    expect(original.ANTHROPIC_API_KEY).toBe("sk-ant-secret");
+  });
+
   test("mergeEnv strips global config secrets while preserving explicit plugin secrets", () => {
     const merged = mergeEnv(
       {

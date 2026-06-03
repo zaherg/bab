@@ -140,13 +140,11 @@ export function mergeEnv(
   globalEnv: Record<string, string>,
   pluginEnv: Record<string, string>,
 ): Record<string, string> {
-  const base = currentProcessEnv(processEnv);
-
-  for (const key of Object.keys(base)) {
-    if (isDelegateSecretEnv(key)) {
-      delete base[key];
-    }
-  }
+  const base = Object.fromEntries(
+    Object.entries(currentProcessEnv(processEnv)).filter(
+      ([key]) => !isDelegateSecretEnv(key),
+    ),
+  );
 
   return {
     ...base,
