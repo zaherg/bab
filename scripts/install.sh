@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# shellcheck shell=bash
+# Brace-around-vars (SC2250) and [[ vs [ (SC2292) are pure cosmetics; the
+# surrounding code is already explicit, so suppress them globally.
+# shellcheck disable=SC2250,SC2292
 set -euo pipefail
 
 # ── Constants ───────────────────────────────────────────────────────
@@ -113,6 +117,9 @@ resolve_version() {
   if [ "$PRERELEASE" -eq 1 ]; then
     info "Fetching latest pre-release..."
     local response
+    # SC2310: function called in || condition intentionally disables
+    # set -e for this single call; we exit via die() on failure.
+    # shellcheck disable=SC2310
     response="$(curl_dl "https://api.github.com/repos/${OWNER}/${REPO}/releases?per_page=20")" \
       || die "Failed to fetch releases from GitHub. Check your connection."
 
@@ -129,6 +136,8 @@ resolve_version() {
   else
     info "Fetching latest release..."
     local response
+    # SC2310: see comment above; || handles exit on failure.
+    # shellcheck disable=SC2310
     response="$(curl_dl "$GITHUB_API")" \
       || die "Failed to fetch latest release from GitHub. Check your connection."
     if command -v jq >/dev/null 2>&1; then
@@ -153,6 +162,8 @@ fetch_and_install() {
   trap cleanup_download EXIT INT TERM
 
   info "Downloading ${asset}..."
+  # SC2310: ||-style error handling is intentional below.
+  # shellcheck disable=SC2310
   if ! curl_dl -o "${TMPDIR_DL}/bab" "$binary_url"; then
     if [ -n "$PREFIX" ]; then
       die "Binary download failed for ${binary_url}. Not falling back to Homebrew because --prefix was specified."
@@ -165,6 +176,8 @@ fetch_and_install() {
     warn "Skipping checksum verification (--no-verify)"
   else
     info "Downloading checksums..."
+    # SC2310: see above.
+    # shellcheck disable=SC2310
     if ! curl_dl -o "${TMPDIR_DL}/checksums.sha256" "$checksums_url"; then
       die "Checksum download failed — cannot verify binary integrity. Use --no-verify to skip."
     fi
@@ -277,6 +290,9 @@ install_binary() {
         warn "Existing Homebrew install detected at ${resolved}. Run 'brew upgrade ${REPO}' instead or use --force to overwrite."
         exit 1
         ;;
+      *)
+        : # not a Homebrew-managed path; continue with install
+        ;;
     esac
   fi
 
@@ -328,6 +344,9 @@ install_binary() {
   # Verify installation via the path we just wrote, not $PATH (which
   # may still resolve an older install).
   if [ -x "$INSTALL_PATH" ]; then
+    # SC2312: capture the version separately so we don't mask the exit
+    # code of the binary's --version.
+    # shellcheck disable=SC2312
     info "Installed version: $("$INSTALL_PATH" --version 2>/dev/null || echo 'unknown')"
   fi
 
