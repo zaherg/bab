@@ -17,12 +17,12 @@ brew install babmcp/tap/bab
 ### Install script (macOS / Linux)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/babmcp/bab/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/zaherg/bab/main/scripts/install.sh | bash
 ```
 
 ### Binary download
 
-Grab the latest from the [releases page](https://github.com/babmcp/bab/releases), then `chmod +x` and move to a directory on your PATH.
+Grab the latest from the [releases page](https://github.com/zaherg/bab/releases), then `chmod +x` and move to a directory on your PATH.
 
 ### From source
 

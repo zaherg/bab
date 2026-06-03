@@ -2,10 +2,20 @@
 set -euo pipefail
 
 # ── Constants ───────────────────────────────────────────────────────
-OWNER="babmcp"
+OWNER="zaherg"
 REPO="bab"
 GITHUB_API="https://api.github.com/repos/${OWNER}/${REPO}/releases/latest"
+: "${HOME:?HOME is required; use --prefix DIR to install without HOME}"
 DEFAULT_PREFIX="${HOME}/.local/bin"
+
+# ── Curl helper ─────────────────────────────────────────────────────
+# Centralized download options: fail on HTTP errors, follow redirects,
+# retry transient failures, bound connect and total time so a stalled
+# connection can't hang the installer.
+curl_dl() {
+  curl --fail --show-error --location --retry 3 --retry-delay 1 \
+    --connect-timeout 10 --max-time 300 "$@"
+}
 
 # ── Color helpers ───────────────────────────────────────────────────
 if [ -t 1 ]; then
@@ -30,7 +40,7 @@ usage() {
 Bab Installer
 
 Usage:
-  curl -fsSL https://raw.githubusercontent.com/${OWNER}/${REPO}/main/install.sh | bash
+  curl -fsSL https://raw.githubusercontent.com/${OWNER}/${REPO}/main/scripts/install.sh | bash
   curl -fsSL ... | bash -s -- [OPTIONS]
 
 Options:
@@ -103,7 +113,7 @@ resolve_version() {
   if [ "$PRERELEASE" -eq 1 ]; then
     info "Fetching latest pre-release..."
     local response
-    response="$(curl -fsSL "https://api.github.com/repos/${OWNER}/${REPO}/releases?per_page=20")" \
+    response="$(curl_dl "https://api.github.com/repos/${OWNER}/${REPO}/releases?per_page=20")" \
       || die "Failed to fetch releases from GitHub. Check your connection."
 
     if command -v jq >/dev/null 2>&1; then
@@ -114,18 +124,20 @@ resolve_version() {
         | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')"
     fi
     [ -n "$VERSION" ] || die "No pre-release found. Use --prerelease=0 (default) to install the latest stable."
+    [[ "$VERSION" =~ ^v?[0-9] ]] || die "Malformed pre-release tag from GitHub: ${VERSION}"
     info "Latest pre-release: ${VERSION}"
   else
     info "Fetching latest release..."
     local response
-    response="$(curl -fsSL "$GITHUB_API")" \
+    response="$(curl_dl "$GITHUB_API")" \
       || die "Failed to fetch latest release from GitHub. Check your connection."
     if command -v jq >/dev/null 2>&1; then
-      VERSION="$(printf '%s' "$response" | jq -r '.tag_name')"
+      VERSION="$(printf '%s' "$response" | jq -r '.tag_name // empty')"
     else
       VERSION="$(printf '%s' "$response" | grep '"tag_name"' | sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')"
     fi
     [ -n "$VERSION" ] || die "Could not determine latest version"
+    [[ "$VERSION" =~ ^v?[0-9] ]] || die "Malformed release tag from GitHub: ${VERSION}"
     info "Latest version: ${VERSION}"
   fi
 }
@@ -138,20 +150,22 @@ fetch_and_install() {
   local checksums_url="${base_url}/checksums.sha256"
 
   TMPDIR_DL="$(mktemp -d)"
-  trap 'rm -rf "$TMPDIR_DL"' EXIT
+  trap cleanup_download EXIT INT TERM
 
   info "Downloading ${asset}..."
-  if ! curl -fSL -o "${TMPDIR_DL}/bab" "$binary_url"; then
+  if ! curl_dl -o "${TMPDIR_DL}/bab" "$binary_url"; then
+    if [ -n "$PREFIX" ]; then
+      die "Binary download failed for ${binary_url}. Not falling back to Homebrew because --prefix was specified."
+    fi
     warn "Binary download failed. Attempting Homebrew fallback..."
-    brew_fallback
-    return
+    brew_fallback   # never returns; exits 0 or 1
   fi
 
   if [ "$NO_VERIFY" -eq 1 ]; then
     warn "Skipping checksum verification (--no-verify)"
   else
     info "Downloading checksums..."
-    if ! curl -fSL -o "${TMPDIR_DL}/checksums.sha256" "$checksums_url"; then
+    if ! curl_dl -o "${TMPDIR_DL}/checksums.sha256" "$checksums_url"; then
       die "Checksum download failed — cannot verify binary integrity. Use --no-verify to skip."
     fi
 
@@ -161,17 +175,32 @@ fetch_and_install() {
   install_binary
 }
 
+cleanup_download() {
+  local status=$?
+  [ -n "${TMPDIR_DL:-}" ] && rm -rf "$TMPDIR_DL" 2>/dev/null || true
+  exit "$status"
+}
+
 # ── Verify checksum ─────────────────────────────────────────────────
 verify_checksum() {
   local asset="$1"
   info "Verifying checksum..."
 
-  local expected
-  expected="$(grep -F " ${asset}" "${TMPDIR_DL}/checksums.sha256" | grep "${asset}$")" \
-    || die "No checksum found for ${asset} in checksums.sha256"
+  if [ "$PLATFORM" = "darwin" ]; then
+    command -v shasum >/dev/null 2>&1 \
+      || die "shasum is required for checksum verification"
+  else
+    command -v sha256sum >/dev/null 2>&1 \
+      || die "sha256sum is required for checksum verification"
+  fi
 
-  # Write a checksum file with the local filename "bab"
-  printf '%s\n' "$expected" | sed "s|${asset}|bab|" > "${TMPDIR_DL}/check.sha256"
+  local expected_hash
+  expected_hash="$(awk -v asset="$asset" '$2 == asset { print $1 }' "${TMPDIR_DL}/checksums.sha256")"
+  [ -n "$expected_hash" ] || die "No checksum found for ${asset} in checksums.sha256"
+
+  # Build a checksums file with the local filename "bab" so the
+  # verification tools can locate the downloaded binary.
+  printf '%s  bab\n' "$expected_hash" > "${TMPDIR_DL}/check.sha256"
 
   # Run verification in a subshell to avoid leaking the cd
   (
@@ -203,37 +232,87 @@ brew_fallback() {
   fi
 }
 
+# ── Sudo confirmation ──────────────────────────────────────────────
+# When the install dir is not user-writable, we'll need sudo. Confirm
+# the exact action unless --force was passed; abort cleanly if not in
+# a terminal and not forced.
+confirm_sudo() {
+  local action="$1"
+  if [ "$FORCE" -eq 1 ]; then
+    return 0
+  fi
+  if [ ! -t 0 ]; then
+    die "Need sudo to ${action} ${INSTALL_PATH}, but stdin is not interactive. Rerun with --force after reviewing the path."
+  fi
+  printf "Install with sudo to %s? [y/N] " "$INSTALL_PATH"
+  local answer
+  read -r answer
+  case "$answer" in
+    y|Y|yes|YES) return 0 ;;
+    *) die "Aborted by user" ;;
+  esac
+}
+
 # ── Install binary ──────────────────────────────────────────────────
 install_binary() {
-  # Strip macOS quarantine attribute
+  # Strip macOS quarantine attribute from the downloaded binary
   if [ "$PLATFORM" = "darwin" ]; then
     xattr -d com.apple.quarantine "${TMPDIR_DL}/bab" 2>/dev/null || true
   fi
 
-  # Check for existing Homebrew-managed install
-  if [ -f "$INSTALL_PATH" ] && [ "$FORCE" -eq 0 ]; then
+  # Refuse symlinked destinations so a privileged install can't be
+  # redirected to an unexpected location by an attacker-controlled
+  # symlink in INSTALL_DIR.
+  if [ -L "$INSTALL_PATH" ]; then
+    die "${INSTALL_PATH} is a symlink; remove it or pass a different --prefix."
+  fi
+
+  # Check for existing Homebrew-managed install (realpath follows
+  # the full symlink chain; also check Linuxbrew prefixes)
+  if [ -e "$INSTALL_PATH" ] && [ "$FORCE" -eq 0 ]; then
     local resolved
-    resolved="$(readlink "$INSTALL_PATH" 2>/dev/null || true)"
-    if printf '%s' "$resolved" | grep -q "Cellar"; then
-      warn "Existing Homebrew install detected. Run 'brew upgrade ${REPO}' instead or use --force to overwrite."
-      exit 1
-    fi
+    resolved="$(realpath "$INSTALL_PATH" 2>/dev/null || readlink "$INSTALL_PATH" 2>/dev/null || true)"
+    case "$resolved" in
+      */Cellar/*|*/Homebrew/*|*/linuxbrew/*)
+        warn "Existing Homebrew install detected at ${resolved}. Run 'brew upgrade ${REPO}' instead or use --force to overwrite."
+        exit 1
+        ;;
+    esac
   fi
 
   # Create install directory (with sudo fallback)
   if ! mkdir -p "$INSTALL_DIR" 2>/dev/null; then
+    confirm_sudo "create directory ${INSTALL_DIR}"
     info "Elevated permissions required to create ${INSTALL_DIR}"
     sudo mkdir -p "$INSTALL_DIR"
   fi
 
-  # Make executable and move
   chmod +x "${TMPDIR_DL}/bab"
 
-  if [ -w "$INSTALL_DIR" ]; then
-    mv "${TMPDIR_DL}/bab" "$INSTALL_PATH"
-  else
+  # Smoke test the downloaded binary before swapping it in. With
+  # --no-verify this is the only check we have; with verification on
+  # it catches the case where the binary is well-formed but broken.
+  if ! "${TMPDIR_DL}/bab" --version >/dev/null 2>&1; then
+    die "Downloaded binary failed smoke test (--version did not run). Aborting."
+  fi
+
+  # Atomic install: stage inside INSTALL_DIR, then rename into place.
+  # Avoids a partial-binary window and keeps the previous bab intact
+  # if anything goes wrong before the rename.
+  local tmp_target="${INSTALL_DIR}/.bab.tmp.$$"
+  local use_sudo=0
+  if [ ! -w "$INSTALL_DIR" ]; then
+    use_sudo=1
+  fi
+
+  if [ "$use_sudo" -eq 1 ]; then
+    confirm_sudo "write to ${INSTALL_DIR}"
     info "Elevated permissions required to write to ${INSTALL_DIR}"
-    sudo mv "${TMPDIR_DL}/bab" "$INSTALL_PATH"
+    sudo install -m 755 "${TMPDIR_DL}/bab" "$tmp_target"
+    sudo mv -f "$tmp_target" "$INSTALL_PATH"
+  else
+    install -m 755 "${TMPDIR_DL}/bab" "$tmp_target"
+    mv -f "$tmp_target" "$INSTALL_PATH"
   fi
 
   # Strip macOS quarantine attribute (mv can preserve xattrs across the move)
@@ -246,9 +325,10 @@ install_binary() {
   # PATH check
   check_path
 
-  # Verify installation
-  if command -v bab >/dev/null 2>&1; then
-    info "Installed version: $(bab --version 2>/dev/null || echo 'unknown')"
+  # Verify installation via the path we just wrote, not $PATH (which
+  # may still resolve an older install).
+  if [ -x "$INSTALL_PATH" ]; then
+    info "Installed version: $("$INSTALL_PATH" --version 2>/dev/null || echo 'unknown')"
   fi
 
   printf "\n%bTo update later, run:%b bab selfupdate\n" "$BOLD" "$RESET"
@@ -256,9 +336,16 @@ install_binary() {
 
 # ── PATH check ──────────────────────────────────────────────────────
 check_path() {
-  case ":${PATH}:" in
-    *":${INSTALL_DIR}:"*) return ;;
-  esac
+  # Split PATH on ':' and compare each entry literally — avoids any
+  # glob/pattern expansion of INSTALL_DIR (e.g. if it contains '*').
+  local entry IFS=':'
+  # Unquoted on purpose: with IFS=':', word-splitting on $PATH gives
+  # the individual entries.
+  for entry in $PATH; do
+    if [ "$entry" = "$INSTALL_DIR" ]; then
+      return 0
+    fi
+  done
 
   warn "${INSTALL_DIR} is not in your PATH"
   printf "\nAdd it by appending one of the following to your shell profile:\n\n"
@@ -267,7 +354,8 @@ check_path() {
   shell_name="$(basename "${SHELL:-bash}")"
   case "$shell_name" in
     zsh)
-      printf "  echo 'export PATH=\"%s:\$PATH\"' >> ~/.zshrc\n" "$INSTALL_DIR"
+      printf "  echo 'export PATH=\"%s:\$PATH\"' >> ~/.zprofile   # login shells\n" "$INSTALL_DIR"
+      printf "  echo 'export PATH=\"%s:\$PATH\"' >> ~/.zshrc      # interactive shells\n" "$INSTALL_DIR"
       printf "  source ~/.zshrc\n"
       ;;
     fish)

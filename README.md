@@ -41,20 +41,20 @@ That name fits the project because Bab acts as a gateway between MCP clients and
 ### Install script (macOS / Linux)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/zaherg/bab/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/zaherg/bab/main/scripts/install.sh | bash
 ```
 
 Options:
 
 ```bash
 # custom install directory
-curl -fsSL https://raw.githubusercontent.com/zaherg/bab/main/install.sh | bash -s -- --prefix /usr/local/bin
+curl -fsSL https://raw.githubusercontent.com/zaherg/bab/main/scripts/install.sh | bash -s -- --prefix /usr/local/bin
 
 # skip checksum verification (not recommended)
-curl -fsSL https://raw.githubusercontent.com/zaherg/bab/main/install.sh | bash -s -- --no-verify
+curl -fsSL https://raw.githubusercontent.com/zaherg/bab/main/scripts/install.sh | bash -s -- --no-verify
 
 # install the latest pre-release (beta, rc, or dated builds)
-curl -fsSL https://raw.githubusercontent.com/zaherg/bab/main/install.sh | bash -s -- --prerelease
+curl -fsSL https://raw.githubusercontent.com/zaherg/bab/main/scripts/install.sh | bash -s -- --prerelease
 ```
 
 The script downloads the binary to a temp dir, verifies its SHA-256 against `checksums.sha256`, strips the macOS quarantine xattr on the final install path, and then `mv`s it to `--prefix` (default `~/.local/bin`).
