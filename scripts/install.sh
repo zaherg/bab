@@ -187,7 +187,9 @@ fetch_and_install() {
 
 cleanup_download() {
   local status=$?
-  [ -n "${TMPDIR_DL:-}" ] && rm -rf "$TMPDIR_DL" 2>/dev/null || true
+  if [ -n "${TMPDIR_DL:-}" ]; then
+    rm -rf "$TMPDIR_DL" 2>/dev/null || true
+  fi
   exit "$status"
 }
 
