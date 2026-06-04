@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.1.7-20260604] - 2026-06-04
+
+### Other
+
+- Make scripts/install.sh shellcheck-clean at default severity.
+- Add debug logging to swallowed cleanup errors in skills module.
+- Clean up ci warnings.
+- Bump version 0.1.7-20260604.
+
+### Removed
+
+- Remove version-specific shellcheck suppressions.
+
 ## [0.1.6-20260603] - 2026-06-03
 
 ### Added
