@@ -403,10 +403,7 @@ describe("P3: ProcessRunner output buffer cap", () => {
   test("caps single oversized chunk to MAX_CAPTURE_BYTES", async () => {
     const runner = new ProcessRunner();
     const result = await runner.run("test-cap-chunk", {
-      args: [
-        "-e",
-        "process.stdout.write('x'.repeat(2_000_000))",
-      ],
+      args: ["-e", "process.stdout.write('x'.repeat(2_000_000))"],
       command: "bun",
       env: { ...process.env } as Record<string, string>,
       timeoutMs: 10_000,
@@ -419,10 +416,7 @@ describe("P3: ProcessRunner output buffer cap", () => {
   test("caps stderr single oversized chunk to MAX_CAPTURE_BYTES", async () => {
     const runner = new ProcessRunner();
     const result = await runner.run("test-cap-stderr", {
-      args: [
-        "-e",
-        "process.stderr.write('y'.repeat(2_000_000))",
-      ],
+      args: ["-e", "process.stderr.write('y'.repeat(2_000_000))"],
       command: "bun",
       env: { ...process.env } as Record<string, string>,
       timeoutMs: 10_000,
@@ -526,18 +520,22 @@ describe("S16: per-plugin log secret redaction", () => {
 
   test("redacts case-insensitive Bearer token", async () => {
     const { redactSecrets } = await import("../src/utils/logger");
-    expect(redactSecrets("Authorization: BEARER eyJhbGciOiJIUzI1NiJ9.token")).toContain(
-      "Bearer [REDACTED]",
-    );
-    expect(redactSecrets("authorization: bearer eyJhbGciOiJIUzI1NiJ9.token")).toContain(
-      "Bearer [REDACTED]",
-    );
+    expect(
+      redactSecrets("Authorization: BEARER eyJhbGciOiJIUzI1NiJ9.token"),
+    ).toContain("Bearer [REDACTED]");
+    expect(
+      redactSecrets("authorization: bearer eyJhbGciOiJIUzI1NiJ9.token"),
+    ).toContain("Bearer [REDACTED]");
   });
 
   test("redacts case-insensitive API key prefix", async () => {
     const { redactSecrets } = await import("../src/utils/logger");
-    expect(redactSecrets("SK-abc123def456ghi789jkl012")).toContain("SK-[REDACTED]");
-    expect(redactSecrets("PK-abc123def456ghi789jkl012")).toContain("PK-[REDACTED]");
+    expect(redactSecrets("SK-abc123def456ghi789jkl012")).toContain(
+      "SK-[REDACTED]",
+    );
+    expect(redactSecrets("PK-abc123def456ghi789jkl012")).toContain(
+      "PK-[REDACTED]",
+    );
   });
 
   test("redacts case-insensitive GitHub token", async () => {

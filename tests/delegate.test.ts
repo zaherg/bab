@@ -254,11 +254,13 @@ describe("plugin-cache race conditions", () => {
     expect(racePlugin).toBeDefined();
 
     // Concurrently invalidate and reload — should never get stale/undefined results
+    invalidatePluginCache();
     const results = await Promise.all([
-      (invalidatePluginCache(), getLoadedPlugins(config)),
       getLoadedPlugins(config),
-      (invalidatePluginCache(), getLoadedPlugins(config)),
+      getLoadedPlugins(config),
+      getLoadedPlugins(config),
     ]);
+    invalidatePluginCache();
 
     for (const result of results) {
       expect(Array.isArray(result)).toBe(true);

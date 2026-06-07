@@ -150,7 +150,11 @@ describe("env utilities", () => {
     });
     const snapshot = { ...original };
 
-    mergeEnv({ ANTHROPIC_API_KEY: "sk-ant-secret", SAFE_VAR: "keep-me" }, {}, {});
+    mergeEnv(
+      { ANTHROPIC_API_KEY: "sk-ant-secret", SAFE_VAR: "keep-me" },
+      {},
+      {},
+    );
 
     expect(original).toEqual(snapshot);
     expect(original.ANTHROPIC_API_KEY).toBe("sk-ant-secret");

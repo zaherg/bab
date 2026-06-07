@@ -230,7 +230,7 @@ const adapter = {
       ? `${rolePrompt}\n\n${input.prompt}`
       : input.prompt;
     const args = ["run", fullPrompt, "--format", "json"];
-    const commandEnv = input.env ?? processEnvRecord();
+    const commandEnv = input.env ?? {};
     const model = resolveModel(input.role, commandEnv);
 
     if (model) {

@@ -125,7 +125,7 @@ export async function fetchLatestRelease(
       const resetHeader = response.headers.get("x-ratelimit-reset");
       const retryAfter = response.headers.get("retry-after");
 
-      let waitUntil: string;
+      let waitUntil: string | undefined;
       if (resetHeader) {
         waitUntil = new Date(Number(resetHeader) * 1000).toLocaleTimeString();
       } else if (retryAfter) {
@@ -137,7 +137,7 @@ export async function fetchLatestRelease(
         }
       }
 
-      if (waitUntil!) {
+      if (waitUntil !== undefined) {
         return err(`GitHub API rate limit exceeded — resets ${waitUntil}.`);
       }
       return err("GitHub API rate limit exceeded. Try again later.");

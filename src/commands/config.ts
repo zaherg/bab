@@ -1,18 +1,17 @@
 import type { BabConfig } from "../config";
 import {
-  PROVIDER_IDS,
   isProviderConfigured,
+  PROVIDER_IDS,
   providerEnvVarNames,
 } from "../providers/registry";
-import type { ProviderId } from "../types";
 import { SECRET_SUFFIXES } from "../utils/env";
 import { VERSION } from "../version";
 import {
+  type CommandPluginRecord,
   discoverBundledPluginRecords,
   discoverInstalledPluginRecords,
   formatTable,
   sourceLabel,
-  type CommandPluginRecord,
   type WritableLike,
   writeLine,
 } from "./shared";

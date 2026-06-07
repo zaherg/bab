@@ -109,7 +109,7 @@ function normalizeEnvValue(rawValue: string): string {
   }
 
   if (trimmed.startsWith('"') || trimmed.startsWith("'")) {
-    throw new Error(`mismatched quotes in value: ${trimmed}`);
+    throw new Error("mismatched quotes — check your .env file formatting");
   }
 
   return trimmed;

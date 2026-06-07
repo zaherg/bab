@@ -356,11 +356,12 @@ export class ProviderRegistry {
         },
       };
     } catch (error) {
+      console.error("[bab] Provider request failed:", error);
       return {
         ok: false,
         error: {
           type: "execution",
-          message: error instanceof Error ? error.message : String(error),
+          message: "Provider request failed",
           retryable: true,
         },
       };
