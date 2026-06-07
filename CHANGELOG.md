@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.1.8-20260607] - 2026-06-07
+
+### Other
+
+- Use Bun.main bunfs check for isBinaryInstall.
+- Add bab config command.
+- Filter env vars to Bab-relevant only.
+- Extract provider helpers, show all env keys.
+- Bump version 0.1.8-20260607.
+
 ## [0.1.7-20260604] - 2026-06-04
 
 ### Other
