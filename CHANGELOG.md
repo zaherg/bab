@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.1.10-20260607] - 2026-06-07
+
+### Changed
+
+- Replace all remaining babmcp/bab references with zaherg/bab.
+
+### Other
+
+- User-Agent, import Result type, rate-limit handling, download timeout.
+- Deduplicate secret suffixes, extract plugin discovery, simplify provider env keys.
+- P1 custom provider error msg, deduplicate isProviderConfigured, extract toPluginRow.
+- Revert extensibility regression, fix maskValue empty, fix retry-after parsing.
+- Bump version 0.1.10-20260607.
+
 ## [0.1.9-20260607] - 2026-06-07
 
 ### Added
