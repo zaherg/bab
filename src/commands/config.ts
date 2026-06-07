@@ -106,11 +106,30 @@ function renderProviders(config: BabConfig, indent = "  "): string {
   return [sectionHeader("AI Providers"), ...rows].join("\n");
 }
 
+function getProviderEnvKeys(): Set<string> {
+  const keys = new Set<string>();
+
+  for (const pc of Object.values(PROVIDER_ENV_CONFIG)) {
+    if (pc.apiKey) keys.add(pc.apiKey);
+    if ("baseUrl" in pc && pc.baseUrl) keys.add(pc.baseUrl);
+  }
+
+  return keys;
+}
+
+function isBabRelevant(key: string, providerKeys: Set<string>): boolean {
+  if (key.startsWith("BAB_")) return true;
+
+  return providerKeys.has(key);
+}
+
 function renderEnvironment(config: BabConfig, indent = "  "): string {
   const env = config.env;
-  const keys = Object.keys(env).sort((left, right) =>
-    left.localeCompare(right),
-  );
+  const providerKeys = getProviderEnvKeys();
+
+  const keys = Object.keys(env)
+    .filter((k) => isBabRelevant(k, providerKeys))
+    .sort((left, right) => left.localeCompare(right));
 
   const lines = keys.map((key) => {
     const raw = env[key] ?? "";
@@ -182,9 +201,11 @@ function providersToJSON(config: BabConfig) {
 
 function environmentToJSON(config: BabConfig) {
   const env = config.env;
-  const keys = Object.keys(env).sort((left, right) =>
-    left.localeCompare(right),
-  );
+  const providerKeys = getProviderEnvKeys();
+
+  const keys = Object.keys(env)
+    .filter((k) => isBabRelevant(k, providerKeys))
+    .sort((left, right) => left.localeCompare(right));
 
   return Object.fromEntries(
     keys.map((key) => {
