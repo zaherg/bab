@@ -163,7 +163,7 @@ export function providerEnvVarNames(pid: ProviderId): string[] {
   const pc = PROVIDER_ENV_CONFIG[pid];
   const keys: string[] = [];
   if (pc.apiKey) keys.push(pc.apiKey);
-  if (pid === "custom" && "baseUrl" in pc && pc.baseUrl) keys.push(pc.baseUrl);
+  if ("baseUrl" in pc && pc.baseUrl) keys.push(pc.baseUrl);
   return keys;
 }
 

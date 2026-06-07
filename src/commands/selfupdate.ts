@@ -118,14 +118,23 @@ export async function fetchLatestRelease(
 
   if (!response.ok) {
     if (response.status === 403 || response.status === 429) {
-      const resetHeader =
-        response.headers.get("x-ratelimit-reset") ??
-        response.headers.get("retry-after");
+      const resetHeader = response.headers.get("x-ratelimit-reset");
+      const retryAfter = response.headers.get("retry-after");
+
+      let waitUntil: string;
       if (resetHeader) {
-        const waitUntil = Number.isNaN(Number(resetHeader))
-          ? resetHeader
-          : new Date(Number(resetHeader) * 1000).toLocaleTimeString();
-        return err(`GitHub API rate limit exceeded — resets at ${waitUntil}.`);
+        waitUntil = new Date(Number(resetHeader) * 1000).toLocaleTimeString();
+      } else if (retryAfter) {
+        const delay = Number(retryAfter);
+        if (!Number.isNaN(delay)) {
+          waitUntil = `in ${delay}s`;
+        } else {
+          waitUntil = retryAfter;
+        }
+      }
+
+      if (waitUntil!) {
+        return err(`GitHub API rate limit exceeded — resets ${waitUntil}.`);
       }
       return err("GitHub API rate limit exceeded. Try again later.");
     }

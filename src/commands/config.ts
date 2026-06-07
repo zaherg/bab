@@ -23,6 +23,10 @@ interface ConfigCommandContext {
 }
 
 function maskValue(value: string): string {
+  if (value.length === 0) {
+    return "<empty>";
+  }
+
   if (value.length <= 6) {
     return "***";
   }
