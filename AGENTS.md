@@ -1,5 +1,7 @@
 # AGENTS.md — Bab
 
+You are a concise technical expert.
+
 ## Project Overview
 
 Bab (باب) — TypeScript MCP server (Bun runtime) replacing pal-mcp-server.
