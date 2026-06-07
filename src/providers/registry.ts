@@ -167,6 +167,27 @@ export function providerEnvVarNames(pid: ProviderId): string[] {
   return keys;
 }
 
+export const PROVIDER_IDS = Object.keys(
+  PROVIDER_ENV_CONFIG,
+) as readonly ProviderId[];
+
+export function isProviderConfigured(
+  providerId: ProviderId,
+  env: Record<string, string>,
+): boolean {
+  const providerConfig = PROVIDER_ENV_CONFIG[providerId];
+
+  if (providerId === "custom") {
+    return Boolean(
+      "baseUrl" in providerConfig &&
+        providerConfig.baseUrl &&
+        env[providerConfig.baseUrl],
+    );
+  }
+
+  return Boolean(providerConfig.apiKey && env[providerConfig.apiKey]);
+}
+
 export class ProviderRegistry {
   private readonly config: BabConfig;
   private readonly generateTextFn: GenerateTextFn;
@@ -236,25 +257,11 @@ export class ProviderRegistry {
   }
 
   isProviderConfigured(providerId: ProviderId): boolean {
-    const providerConfig = PROVIDER_ENV_CONFIG[providerId];
-
-    if (providerId === "custom") {
-      return Boolean(
-        "baseUrl" in providerConfig &&
-          providerConfig.baseUrl &&
-          this.config.env[providerConfig.baseUrl],
-      );
-    }
-
-    return Boolean(
-      providerConfig.apiKey && this.config.env[providerConfig.apiKey],
-    );
+    return isProviderConfigured(providerId, this.config.env);
   }
 
   private configuredProviders(): ProviderId[] {
-    return (Object.keys(PROVIDER_ENV_CONFIG) as ProviderId[]).filter((pid) =>
-      this.isProviderConfigured(pid),
-    );
+    return PROVIDER_IDS.filter((pid) => this.isProviderConfigured(pid));
   }
 
   private async discoverProviderModels(pid: ProviderId): Promise<ModelInfo[]> {
@@ -289,12 +296,17 @@ export class ProviderRegistry {
     }
 
     if (!this.isProviderConfigured(modelInfo.provider)) {
-      const envVar = PROVIDER_ENV_CONFIG[modelInfo.provider].apiKey;
+      const provider = modelInfo.provider;
+      const varNames = providerEnvVarNames(provider);
+      const message =
+        provider === "custom"
+          ? `Provider not configured: ${provider}. Set ${varNames.join(" and ")} to enable it.`
+          : `Provider not configured: ${provider}. Set ${varNames[0]} to enable it.`;
       return {
         ok: false,
         error: {
           type: "configuration",
-          message: `Provider not configured: ${modelInfo.provider}. Set ${envVar} to enable it.`,
+          message,
           retryable: false,
         },
       };

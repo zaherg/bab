@@ -1,6 +1,7 @@
 import type { BabConfig } from "../config";
 import {
-  PROVIDER_ENV_CONFIG,
+  PROVIDER_IDS,
+  isProviderConfigured,
   providerEnvVarNames,
 } from "../providers/registry";
 import type { ProviderId } from "../types";
@@ -41,7 +42,7 @@ function renderBabInfo(config: BabConfig, indent = "  "): string {
   const lines = [
     sectionHeader("Bab"),
     `${indent}Version      ${VERSION}`,
-    `${indent}Persistence  ${config.persistence?.enabled ? "on" : "off"}`,
+    `${indent}Persistence  ${(config.persistence?.enabled ?? true) ? "on" : "off"}`,
     `${indent}Config Dir   ${config.paths.baseDir}`,
   ];
 
@@ -57,12 +58,29 @@ async function discoverAllPlugins(
   config: BabConfig,
 ): Promise<DiscoveredPluginSets> {
   const [bundled, installed] = await Promise.all([
-    discoverBundledPluginRecords().catch((): CommandPluginRecord[] => []),
+    discoverBundledPluginRecords().catch((error): CommandPluginRecord[] => {
+      console.error("[bab config] bundled plugin discovery failed:", error);
+      return [];
+    }),
     discoverInstalledPluginRecords(config.paths).catch(
-      (): CommandPluginRecord[] => [],
+      (error): CommandPluginRecord[] => {
+        console.error("[bab config] installed plugin discovery failed:", error);
+        return [];
+      },
     ),
   ]);
   return { bundled, installed };
+}
+
+function toPluginRow(plugin: CommandPluginRecord) {
+  return [
+    plugin.manifest.id,
+    plugin.manifest.name,
+    plugin.manifest.version,
+    plugin.manifest.command,
+    plugin.sourceType,
+    sourceLabel(plugin),
+  ];
 }
 
 function renderPlugins(plugins: DiscoveredPluginSets): string {
@@ -70,37 +88,16 @@ function renderPlugins(plugins: DiscoveredPluginSets): string {
     ["ID", "Name", "Version", "Command", "Source Type", "Source Repo"],
     ...[...plugins.bundled, ...plugins.installed]
       .sort((left, right) => left.manifest.id.localeCompare(right.manifest.id))
-      .map((plugin) => [
-        plugin.manifest.id,
-        plugin.manifest.name,
-        plugin.manifest.version,
-        plugin.manifest.command,
-        plugin.sourceType,
-        sourceLabel(plugin),
-      ]),
+      .map(toPluginRow),
   ];
 
   return [sectionHeader("Plugins"), formatTable(rows)].join("\n");
 }
 
-function isProviderConfigured(
-  pid: ProviderId,
-  env: Record<string, string>,
-): boolean {
-  const pc = PROVIDER_ENV_CONFIG[pid];
-
-  if (pid === "custom") {
-    return Boolean("baseUrl" in pc && pc.baseUrl && env[pc.baseUrl]);
-  }
-
-  return Boolean(pc.apiKey && env[pc.apiKey]);
-}
-
 function renderProviders(config: BabConfig, indent = "  "): string {
-  const providers = Object.keys(PROVIDER_ENV_CONFIG) as ProviderId[];
   const env = config.env;
 
-  const rows = providers.map((pid) => {
+  const rows = PROVIDER_IDS.map((pid) => {
     const configured = isProviderConfigured(pid, env);
     const envKeys = providerEnvVarNames(pid);
 
@@ -111,8 +108,7 @@ function renderProviders(config: BabConfig, indent = "  "): string {
 }
 
 function getProviderEnvKeys(): Set<string> {
-  const providers = Object.keys(PROVIDER_ENV_CONFIG) as ProviderId[];
-  return new Set(providers.flatMap((pid) => providerEnvVarNames(pid)));
+  return new Set(PROVIDER_IDS.flatMap((pid) => providerEnvVarNames(pid)));
 }
 
 function isBabRelevant(key: string, providerKeys: Set<string>): boolean {
@@ -152,8 +148,8 @@ async function renderConfigFull(config: BabConfig): Promise<string> {
 }
 
 function pluginsToJSON(
-  bundled: Awaited<ReturnType<typeof discoverBundledPluginRecords>>,
-  installed: Awaited<ReturnType<typeof discoverInstalledPluginRecords>>,
+  bundled: CommandPluginRecord[],
+  installed: CommandPluginRecord[],
 ) {
   return [...bundled, ...installed]
     .sort((left, right) => left.manifest.id.localeCompare(right.manifest.id))
@@ -168,11 +164,10 @@ function pluginsToJSON(
 }
 
 function providersToJSON(config: BabConfig) {
-  const providers = Object.keys(PROVIDER_ENV_CONFIG) as ProviderId[];
   const env = config.env;
 
   return Object.fromEntries(
-    providers.map((pid) => {
+    PROVIDER_IDS.map((pid) => {
       const configured = isProviderConfigured(pid, env);
       const envVars = providerEnvVarNames(pid);
 
