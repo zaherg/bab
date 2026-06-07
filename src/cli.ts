@@ -2,6 +2,7 @@
 
 import { main as startServer } from "./bootstrap";
 import { runAddCommand as executeAddCommand } from "./commands/add";
+import { runConfigCommand as executeConfigCommand } from "./commands/config";
 import { CommandError } from "./commands/errors";
 import { runListCommand as executeListCommand } from "./commands/list";
 import { runOnboardCommand as executeOnboardCommand } from "./commands/onboard";
@@ -19,6 +20,7 @@ interface WritableLike {
 export interface CliDependencies {
   loadConfig: typeof loadConfig;
   runAddCommand: typeof executeAddCommand;
+  runConfigCommand: typeof executeConfigCommand;
   runListCommand: typeof executeListCommand;
   runOnboardCommand: typeof executeOnboardCommand;
   runRemoveCommand: typeof executeRemoveCommand;
@@ -52,6 +54,7 @@ class CliCommandError extends Error {
 const defaultCliDependencies: CliDependencies = {
   loadConfig,
   runAddCommand: executeAddCommand,
+  runConfigCommand: executeConfigCommand,
   runListCommand: executeListCommand,
   runOnboardCommand: executeOnboardCommand,
   runRemoveCommand: executeRemoveCommand,
@@ -76,6 +79,7 @@ const CLI_TIPS = [
   "Check updates without installing via `bab selfupdate --check`.",
   "Validate a plugin with `bab test-plugin <plugin-directory>`.",
   "Use `bab list` to inspect bundled and installed plugins.",
+  "Use `bab config` to review your full Bab setup.",
 ] as const;
 
 const ANSI = {
@@ -193,6 +197,7 @@ export function getCliHelpText(options: CliHelpTextOptions = {}): string {
     "  bab add <source>",
     "  bab remove <plugin-id>",
     "  bab list",
+    "  bab config [--json]",
     "  bab onboard",
     "  bab help",
     "  bab selfupdate [--check] [--force]",
@@ -202,6 +207,7 @@ export function getCliHelpText(options: CliHelpTextOptions = {}): string {
     "  add                   Install plugin(s) from a git source",
     "  remove                Remove an installed plugin",
     "  list                  List bundled and installed plugins",
+    "  config                Show current Bab configuration",
     "  onboard               Generate Agent Skills for detected host agents",
     "  selfupdate            Update bab to the latest release",
     "  help                  Show CLI usage information",
@@ -235,6 +241,18 @@ export function getListHelpText(): string {
     "  bab list",
     "",
     "List bundled and installed plugins.",
+  ].join("\n");
+}
+
+export function getConfigHelpText(): string {
+  return [
+    "Usage:",
+    "  bab config [--json]",
+    "",
+    "Show current Bab configuration: version, plugins, AI providers, and environment.",
+    "",
+    "Options:",
+    "  --json    Output in JSON format",
   ].join("\n");
 }
 
@@ -371,6 +389,23 @@ async function runListCommand(
   });
 }
 
+async function runConfigCommand(
+  args: string[],
+  dependencies: CliDependencies,
+): Promise<number> {
+  if (isHelpFlag(args[0])) {
+    writeLine(dependencies.stdout, getConfigHelpText());
+    return 0;
+  }
+
+  const config = await dependencies.loadConfig();
+
+  return dependencies.runConfigCommand(args, {
+    config,
+    stdout: dependencies.stdout,
+  });
+}
+
 async function runTestPluginCommand(
   args: string[],
   dependencies: CliDependencies,
@@ -432,6 +467,7 @@ async function runSelfupdateCommand(
 
 const commandHandlers: Record<string, CliCommandHandler> = {
   add: runAddCommand,
+  config: runConfigCommand,
   list: runListCommand,
   onboard: runOnboardCommand,
   remove: runRemoveCommand,

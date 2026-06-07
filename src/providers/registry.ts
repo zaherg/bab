@@ -151,7 +151,7 @@ const SYNTHETIC_DEFAULTS: ModelInfo["capabilities"] = {
   aliases: [],
 };
 
-const PROVIDER_ENV_CONFIG = {
+export const PROVIDER_ENV_CONFIG = {
   anthropic: { apiKey: "ANTHROPIC_API_KEY" },
   custom: { apiKey: "CUSTOM_API_KEY", baseUrl: "CUSTOM_API_URL" },
   google: { apiKey: "GOOGLE_API_KEY" },

@@ -26,6 +26,7 @@ function createCliDependencies(
   return {
     loadConfig: async () => TEST_CONFIG,
     runAddCommand: async () => 0,
+    runConfigCommand: async () => 0,
     runListCommand: async () => 0,
     runOnboardCommand: async () => 0,
     runRemoveCommand: async () => 0,
