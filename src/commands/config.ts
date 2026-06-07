@@ -76,31 +76,38 @@ async function renderPlugins(config: BabConfig): Promise<string> {
   return [sectionHeader("Plugins"), formatTable(rows)].join("\n");
 }
 
+function getProviderEnvKeysForId(pid: ProviderId): string[] {
+  const pc = PROVIDER_ENV_CONFIG[pid];
+  const keys: string[] = [];
+
+  if (pc.apiKey) keys.push(pc.apiKey);
+  if ("baseUrl" in pc && pc.baseUrl) keys.push(pc.baseUrl);
+
+  return keys;
+}
+
+function isProviderConfigured(
+  pid: ProviderId,
+  env: Record<string, string>,
+): boolean {
+  const pc = PROVIDER_ENV_CONFIG[pid];
+
+  if (pid === "custom") {
+    return Boolean("baseUrl" in pc && pc.baseUrl && env[pc.baseUrl]);
+  }
+
+  return Boolean(pc.apiKey && env[pc.apiKey]);
+}
+
 function renderProviders(config: BabConfig, indent = "  "): string {
   const providers = Object.keys(PROVIDER_ENV_CONFIG) as ProviderId[];
+  const env = config.env;
 
   const rows = providers.map((pid) => {
-    const providerConfig = PROVIDER_ENV_CONFIG[pid];
-    let configured: boolean;
+    const configured = isProviderConfigured(pid, env);
+    const envKeys = getProviderEnvKeysForId(pid);
 
-    if (pid === "custom") {
-      configured = Boolean(
-        "baseUrl" in providerConfig &&
-          providerConfig.baseUrl &&
-          config.env[providerConfig.baseUrl],
-      );
-    } else {
-      configured = Boolean(
-        providerConfig.apiKey && config.env[providerConfig.apiKey],
-      );
-    }
-
-    const envVar =
-      pid === "custom" && "baseUrl" in providerConfig
-        ? providerConfig.baseUrl
-        : (providerConfig.apiKey ?? "—");
-
-    return `${indent}${pid.padEnd(12)} ${configured ? "configured" : "not configured"} (${envVar})`;
+    return `${indent}${pid.padEnd(12)} ${configured ? "configured" : "not configured"} (${envKeys.join(", ")})`;
   });
 
   return [sectionHeader("AI Providers"), ...rows].join("\n");
@@ -171,30 +178,14 @@ function pluginsToJSON(
 
 function providersToJSON(config: BabConfig) {
   const providers = Object.keys(PROVIDER_ENV_CONFIG) as ProviderId[];
+  const env = config.env;
 
   return Object.fromEntries(
     providers.map((pid) => {
-      const providerConfig = PROVIDER_ENV_CONFIG[pid];
-      let configured: boolean;
+      const configured = isProviderConfigured(pid, env);
+      const envVars = getProviderEnvKeysForId(pid);
 
-      if (pid === "custom") {
-        configured = Boolean(
-          "baseUrl" in providerConfig &&
-            providerConfig.baseUrl &&
-            config.env[providerConfig.baseUrl],
-        );
-      } else {
-        configured = Boolean(
-          providerConfig.apiKey && config.env[providerConfig.apiKey],
-        );
-      }
-
-      const envVar =
-        pid === "custom" && "baseUrl" in providerConfig
-          ? providerConfig.baseUrl
-          : (providerConfig.apiKey ?? "—");
-
-      return [pid, { configured, envVar }];
+      return [pid, { configured, envVars }];
     }),
   );
 }
