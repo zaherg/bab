@@ -31,7 +31,7 @@ That name fits the project because Bab acts as a gateway between MCP clients and
 - In-memory conversation storage with continuation support and a 20-turn limit
 - Full core and specialized workflow tool suite
 - Lazy tool loading by default (5 tools at startup vs 17), with on-demand auto-load
-- CLI entrypoint with `serve`, `add`, `remove`, `list`, `selfupdate`, and `test-plugin` commands
+- CLI entrypoint with `serve`, `add`, `remove`, `list`, `config`, `selfupdate`, and `test-plugin` commands
 - Plugin SDK export surface via `@zaherg/bab/sdk`
 - Delegate environment hardening: API keys and `BAB_*` internal vars are never leaked to subprocesses
 - Dedicated error log at `~/.config/bab/logs/error.log` for quick debugging
@@ -383,6 +383,7 @@ bunx tsc -p tsconfig.json --noEmit
 bun run src/cli.ts serve
 bun run src/cli.ts add git@github.com:zaherg/bab-plugins.git --yes
 bun run src/cli.ts list
+bun run src/cli.ts config
 bun run src/cli.ts test-plugin ../bab-plugins/claude
 ```
 

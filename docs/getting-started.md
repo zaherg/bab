@@ -29,7 +29,7 @@ Grab the latest from the [releases page](https://github.com/zaherg/bab/releases)
 Requires [Bun](https://bun.sh) 1.3.9 or newer.
 
 ```bash
-git clone https://github.com/babmcp/bab.git && cd bab
+git clone https://github.com/zaherg/bab.git && cd bab
 bun install
 bun run build:binary   # compiled binary at dist/bab
 ```
@@ -96,7 +96,7 @@ bab serve
 Install the first-party external plugins:
 
 ```bash
-bab add git@github.com:babmcp/plugins.git
+bab add zaherg/bab-plugins
 ```
 
 > **Security note:** Plugin adapters run as trusted code with full access to your filesystem and network. Bab prompts for confirmation before installing unless you pass `--yes`. Only install plugins from sources you trust.
@@ -106,6 +106,14 @@ List bundled and installed plugins:
 ```bash
 bab list
 ```
+
+View current Bab configuration:
+
+```bash
+bab config
+```
+
+This shows your Bab version, installed plugins, configured AI providers, and environment variables. Pass `--json` for machine-readable output.
 
 Validate a plugin directory:
 

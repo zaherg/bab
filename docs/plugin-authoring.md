@@ -188,10 +188,10 @@ bab test-plugin ./my-plugin
 ### Install all first-party plugins
 
 ```bash
-bab add babmcp/plugins
+bab add zaherg/bab-plugins
 ```
 
-This installs all plugins from the [babmcp/plugins](https://github.com/babmcp/plugins) repository (`claude`, `codex`, `copilot`).
+This installs all plugins from the [zaherg/bab-plugins](https://github.com/zaherg/bab-plugins) repository (`claude`, `codex`, `copilot`).
 
 ### Install from any git repository
 
@@ -206,7 +206,7 @@ bab add git@github.com:yourorg/your-plugins.git
 bab add https://github.com/yourorg/your-plugins.git
 
 # Pin to a specific branch, tag, or commit
-bab add babmcp/plugins#v1.2.0
+bab add zaherg/bab-plugins#v1.2.0
 ```
 
 ### Install a single plugin
@@ -215,7 +215,7 @@ If a repository contains multiple plugins and you only want one, clone the repo 
 
 ```bash
 # Install only the copilot plugin
-bab add git@github.com:babmcp/plugins.git  # installs all — then remove what you don't need:
+bab add zaherg/bab-plugins  # installs all — then remove what you don't need:
 bab remove codex
 bab remove claude
 ```
@@ -223,7 +223,7 @@ bab remove claude
 ### Skip confirmation
 
 ```bash
-bab add babmcp/plugins --yes
+bab add zaherg/bab-plugins --yes
 ```
 
 ### List installed plugins

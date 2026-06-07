@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add bab config command.
 - Filter env vars to Bab-relevant only.
 - Extract provider helpers, show all env keys.
+- Fix selfupdate GitHub owner (babmcp -> zaherg) and use /releases endpoint for prerelease support.
 - Bump version 0.1.8-20260607.
 
 ## [0.1.7-20260604] - 2026-06-04
