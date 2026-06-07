@@ -2,6 +2,7 @@ import { copyFile, mkdtemp, realpath, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import type { Result } from "../types/tools";
 import { VERSION } from "../version";
 
 /* ------------------------------------------------------------------ */
@@ -12,15 +13,11 @@ export interface WritableLike {
   write(chunk: string): unknown;
 }
 
-export type Result<T, E = string> =
-  | { ok: true; value: T }
-  | { ok: false; error: E };
-
 function ok<T>(value: T): Result<T, never> {
   return { ok: true, value };
 }
 
-function err<E>(error: E): Result<never, E> {
+function err<E = string>(error: E): Result<never, E> {
   return { ok: false, error };
 }
 
@@ -57,6 +54,7 @@ const OWNER = "zaherg";
 const REPO = "bab";
 const GITHUB_ORIGIN = "https://github.com/";
 const GH_OBJECTS_ORIGIN = "https://objects.githubusercontent.com/";
+const DOWNLOAD_TIMEOUT_MS = Number(process.env.BAB_CLI_TIMEOUT_MS) || 300_000;
 
 const SUPPORTED_PLATFORMS = [
   "darwin-arm64",
@@ -99,10 +97,11 @@ export async function fetchLatestRelease(
   owner: string,
   repo: string,
   fetchFn: typeof globalThis.fetch = globalThis.fetch,
-): Promise<Result<ReleaseInfo>> {
+): Promise<Result<ReleaseInfo, string>> {
   const url = `https://api.github.com/repos/${owner}/${repo}/releases?per_page=1`;
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
+    "User-Agent": "bab-selfupdate",
   };
 
   const token = process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN;
@@ -118,6 +117,18 @@ export async function fetchLatestRelease(
   }
 
   if (!response.ok) {
+    if (response.status === 403 || response.status === 429) {
+      const resetHeader =
+        response.headers.get("x-ratelimit-reset") ??
+        response.headers.get("retry-after");
+      if (resetHeader) {
+        const waitUntil = Number.isNaN(Number(resetHeader))
+          ? resetHeader
+          : new Date(Number(resetHeader) * 1000).toLocaleTimeString();
+        return err(`GitHub API rate limit exceeded — resets at ${waitUntil}.`);
+      }
+      return err("GitHub API rate limit exceeded. Try again later.");
+    }
     return err(`GitHub API error: ${response.status} ${response.statusText}`);
   }
 
@@ -148,7 +159,10 @@ export function resolveAssetUrl(
   assets: ReleaseAsset[],
   platform: string,
   arch: string,
-): Result<{ asset: ReleaseAsset; checksumAsset: ReleaseAsset | undefined }> {
+): Result<
+  { asset: ReleaseAsset; checksumAsset: ReleaseAsset | undefined },
+  string
+> {
   const expectedName = `bab-${platform}-${arch}`;
   const target = `${platform}-${arch}`;
 
@@ -181,7 +195,7 @@ export async function verifyChecksum(
   filePath: string,
   checksumFileContent: string,
   assetName: string,
-): Promise<Result<true>> {
+): Promise<Result<true, string>> {
   const line = checksumFileContent
     .split("\n")
     .find((l) => l.includes(assetName));
@@ -243,15 +257,22 @@ function renderProgress(
 
 export async function downloadAndInstall(
   opts: DownloadOptions,
-): Promise<Result<true>> {
+): Promise<Result<true, string>> {
   const { url, checksumUrl, assetName, targetPath, version, stderr } = opts;
   const fetchFn = opts.fetch;
 
   // Download binary
   let response: Response;
   try {
-    response = await fetchFn(url);
-  } catch {
+    response = await fetchFn(url, {
+      signal: AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS),
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "TimeoutError") {
+      return err(
+        "Download timed out. Try setting BAB_CLI_TIMEOUT_MS to a higher value.",
+      );
+    }
     return err("Failed to download binary. Check your connection.");
   }
 
@@ -296,8 +317,13 @@ export async function downloadAndInstall(
     if (checksumUrl) {
       let checksumResponse: Response;
       try {
-        checksumResponse = await fetchFn(checksumUrl);
-      } catch {
+        checksumResponse = await fetchFn(checksumUrl, {
+          signal: AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS),
+        });
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "TimeoutError") {
+          return err("Checksum download timed out.");
+        }
         return err("Failed to download checksums file.");
       }
 
