@@ -53,7 +53,7 @@ export interface DownloadOptions {
   version: string;
 }
 
-const OWNER = "babmcp";
+const OWNER = "zaherg";
 const REPO = "bab";
 const GITHUB_ORIGIN = "https://github.com/";
 const GH_OBJECTS_ORIGIN = "https://objects.githubusercontent.com/";
@@ -100,7 +100,7 @@ export async function fetchLatestRelease(
   repo: string,
   fetchFn: typeof globalThis.fetch = globalThis.fetch,
 ): Promise<Result<ReleaseInfo>> {
-  const url = `https://api.github.com/repos/${owner}/${repo}/releases/latest`;
+  const url = `https://api.github.com/repos/${owner}/${repo}/releases?per_page=1`;
   const headers: Record<string, string> = {
     Accept: "application/vnd.github+json",
   };
@@ -121,17 +121,22 @@ export async function fetchLatestRelease(
     return err(`GitHub API error: ${response.status} ${response.statusText}`);
   }
 
-  const data = (await response.json()) as {
+  const data = (await response.json()) as Array<{
     assets: Array<{ browser_download_url: string; name: string }>;
     tag_name: string;
-  };
+  }>;
+
+  const latest = data[0];
+  if (!latest) {
+    return err("No releases found.");
+  }
 
   return ok({
-    assets: data.assets.map((a) => ({
+    assets: latest.assets.map((a) => ({
       browser_download_url: a.browser_download_url,
       name: a.name,
     })),
-    version: data.tag_name.replace(/^v/, ""),
+    version: latest.tag_name.replace(/^v/, ""),
   });
 }
 

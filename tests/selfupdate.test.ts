@@ -230,21 +230,23 @@ describe("fetchLatestRelease", () => {
     const fakeFetch = mockFetch(
       async () =>
         new Response(
-          JSON.stringify({
-            tag_name: "v0.2.0",
-            assets: [
-              {
-                name: "bab-darwin-arm64",
-                browser_download_url:
-                  "https://github.com/babmcp/bab/releases/download/v0.2.0/bab-darwin-arm64",
-              },
-              {
-                name: "checksums.sha256",
-                browser_download_url:
-                  "https://github.com/babmcp/bab/releases/download/v0.2.0/checksums.sha256",
-              },
-            ],
-          }),
+          JSON.stringify([
+            {
+              tag_name: "v0.2.0",
+              assets: [
+                {
+                  name: "bab-darwin-arm64",
+                  browser_download_url:
+                    "https://github.com/zaherg/bab/releases/download/v0.2.0/bab-darwin-arm64",
+                },
+                {
+                  name: "checksums.sha256",
+                  browser_download_url:
+                    "https://github.com/zaherg/bab/releases/download/v0.2.0/checksums.sha256",
+                },
+              ],
+            },
+          ]),
           { status: 200, headers: { "Content-Type": "application/json" } },
         ),
     );
@@ -525,16 +527,18 @@ describe("runSelfUpdate", () => {
     const fakeFetch = mockFetch(
       async () =>
         new Response(
-          JSON.stringify({
-            tag_name: `v${VERSION}`,
-            assets: [
-              {
-                name: "bab-darwin-arm64",
-                browser_download_url:
-                  "https://github.com/babmcp/bab/releases/download/v0.1.0/bab-darwin-arm64",
-              },
-            ],
-          }),
+          JSON.stringify([
+            {
+              tag_name: `v${VERSION}`,
+              assets: [
+                {
+                  name: "bab-darwin-arm64",
+                  browser_download_url:
+                    "https://github.com/zaherg/bab/releases/download/v0.1.0/bab-darwin-arm64",
+                },
+              ],
+            },
+          ]),
           { status: 200 },
         ),
     );
@@ -550,16 +554,18 @@ describe("runSelfUpdate", () => {
     const fakeFetch = mockFetch(
       async () =>
         new Response(
-          JSON.stringify({
-            tag_name: "v99.99.99",
-            assets: [
-              {
-                name: "bab-darwin-arm64",
-                browser_download_url:
-                  "https://github.com/babmcp/bab/releases/download/v99.99.99/bab-darwin-arm64",
-              },
-            ],
-          }),
+          JSON.stringify([
+            {
+              tag_name: "v99.99.99",
+              assets: [
+                {
+                  name: "bab-darwin-arm64",
+                  browser_download_url:
+                    "https://github.com/zaherg/bab/releases/download/v99.99.99/bab-darwin-arm64",
+                },
+              ],
+            },
+          ]),
           { status: 200 },
         ),
     );
@@ -580,21 +586,23 @@ describe("runSelfUpdate", () => {
     const fakeFetch = mockFetch(
       async () =>
         new Response(
-          JSON.stringify({
-            tag_name: `v${VERSION}`,
-            assets: [
-              {
-                name: "bab-darwin-arm64",
-                browser_download_url:
-                  "https://github.com/babmcp/bab/releases/download/v0.1.0/bab-darwin-arm64",
-              },
-              {
-                name: "checksums.sha256",
-                browser_download_url:
-                  "https://github.com/babmcp/bab/releases/download/v0.1.0/checksums.sha256",
-              },
-            ],
-          }),
+          JSON.stringify([
+            {
+              tag_name: `v${VERSION}`,
+              assets: [
+                {
+                  name: "bab-darwin-arm64",
+                  browser_download_url:
+                    "https://github.com/zaherg/bab/releases/download/v0.1.0/bab-darwin-arm64",
+                },
+                {
+                  name: "checksums.sha256",
+                  browser_download_url:
+                    "https://github.com/zaherg/bab/releases/download/v0.1.0/checksums.sha256",
+                },
+              ],
+            },
+          ]),
           { status: 200 },
         ),
     );
