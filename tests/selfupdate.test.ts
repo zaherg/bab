@@ -63,27 +63,27 @@ describe("resolveAssetUrl", () => {
   const assets: ReleaseAsset[] = [
     {
       browser_download_url:
-        "https://github.com/babmcp/bab/releases/download/v0.1.0/bab-darwin-arm64",
+        "https://github.com/zaherg/bab/releases/download/v0.1.0/bab-darwin-arm64",
       name: "bab-darwin-arm64",
     },
     {
       browser_download_url:
-        "https://github.com/babmcp/bab/releases/download/v0.1.0/bab-darwin-x64",
+        "https://github.com/zaherg/bab/releases/download/v0.1.0/bab-darwin-x64",
       name: "bab-darwin-x64",
     },
     {
       browser_download_url:
-        "https://github.com/babmcp/bab/releases/download/v0.1.0/bab-linux-x64",
+        "https://github.com/zaherg/bab/releases/download/v0.1.0/bab-linux-x64",
       name: "bab-linux-x64",
     },
     {
       browser_download_url:
-        "https://github.com/babmcp/bab/releases/download/v0.1.0/bab-linux-arm64",
+        "https://github.com/zaherg/bab/releases/download/v0.1.0/bab-linux-arm64",
       name: "bab-linux-arm64",
     },
     {
       browser_download_url:
-        "https://github.com/babmcp/bab/releases/download/v0.1.0/checksums.sha256",
+        "https://github.com/zaherg/bab/releases/download/v0.1.0/checksums.sha256",
       name: "checksums.sha256",
     },
   ];
@@ -328,11 +328,11 @@ describe("downloadAndInstall", () => {
     const result = await downloadAndInstall({
       assetName: "bab-darwin-arm64",
       checksumUrl:
-        "https://github.com/babmcp/bab/releases/download/v1.0.0/checksums.sha256",
+        "https://github.com/zaherg/bab/releases/download/v1.0.0/checksums.sha256",
       fetch: fakeFetch,
       stderr,
       targetPath,
-      url: "https://github.com/babmcp/bab/releases/download/v1.0.0/bab-darwin-arm64",
+      url: "https://github.com/zaherg/bab/releases/download/v1.0.0/bab-darwin-arm64",
       version: "1.0.0",
     });
 
@@ -366,11 +366,11 @@ describe("downloadAndInstall", () => {
     const result = await downloadAndInstall({
       assetName: "bab-darwin-arm64",
       checksumUrl:
-        "https://github.com/babmcp/bab/releases/download/v1.0.0/checksums.sha256",
+        "https://github.com/zaherg/bab/releases/download/v1.0.0/checksums.sha256",
       fetch: fakeFetch,
       stderr,
       targetPath,
-      url: "https://github.com/babmcp/bab/releases/download/v1.0.0/bab-darwin-arm64",
+      url: "https://github.com/zaherg/bab/releases/download/v1.0.0/bab-darwin-arm64",
       version: "1.0.0",
     });
 
@@ -418,11 +418,11 @@ describe("downloadAndInstall", () => {
     const result = await downloadAndInstall({
       assetName: "bab-darwin-arm64",
       checksumUrl:
-        "https://github.com/babmcp/bab/releases/download/v1.0.0/checksums.sha256",
+        "https://github.com/zaherg/bab/releases/download/v1.0.0/checksums.sha256",
       fetch: fakeFetch,
       stderr,
       targetPath,
-      url: "https://github.com/babmcp/bab/releases/download/v1.0.0/bab-darwin-arm64",
+      url: "https://github.com/zaherg/bab/releases/download/v1.0.0/bab-darwin-arm64",
       version: "1.0.0",
     });
 
@@ -458,7 +458,7 @@ describe("downloadAndInstall", () => {
       fetch: fakeFetch,
       stderr,
       targetPath,
-      url: "https://github.com/babmcp/bab/releases/download/v1.0.0/bab-darwin-arm64",
+      url: "https://github.com/zaherg/bab/releases/download/v1.0.0/bab-darwin-arm64",
       version: "1.0.0",
     });
 
