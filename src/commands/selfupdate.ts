@@ -70,8 +70,7 @@ const SUPPORTED_PLATFORMS = [
 /* ------------------------------------------------------------------ */
 
 export function isBinaryInstall(): boolean {
-  // biome-ignore lint/suspicious/noExplicitAny: Bun.embeddedFiles is only present in compiled binaries
-  return ((globalThis as any).Bun?.embeddedFiles?.length ?? 0) > 0;
+  return Bun.main.startsWith("/$bunfs/");
 }
 
 export function isBrewInstall(execPath: string): boolean {
