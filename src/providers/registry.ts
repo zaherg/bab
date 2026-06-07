@@ -159,6 +159,14 @@ export const PROVIDER_ENV_CONFIG = {
   openrouter: { apiKey: "OPENROUTER_API_KEY" },
 } as const satisfies Record<ProviderId, { apiKey?: string; baseUrl?: string }>;
 
+export function providerEnvVarNames(pid: ProviderId): string[] {
+  const pc = PROVIDER_ENV_CONFIG[pid];
+  const keys: string[] = [];
+  if (pc.apiKey) keys.push(pc.apiKey);
+  if (pid === "custom" && "baseUrl" in pc && pc.baseUrl) keys.push(pc.baseUrl);
+  return keys;
+}
+
 export class ProviderRegistry {
   private readonly config: BabConfig;
   private readonly generateTextFn: GenerateTextFn;

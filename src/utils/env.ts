@@ -41,22 +41,20 @@ const FILE_ENV_DENYLIST = new Set([
 /** Env var prefixes stripped from the merged env before passing to delegates. */
 const PROCESS_ENV_STRIP_PREFIXES = ["CLAUDE_", "CLAUDECODE", "BAB_"];
 
-/**
- * Suffix patterns for env vars that are likely secrets.
- * Catches common patterns like XAI_API_KEY, NPM_TOKEN, AWS_SECRET_ACCESS_KEY, etc.
- * without needing an exhaustive list.
- */
-const DELEGATE_ENV_STRIP_PATTERNS: Array<(key: string) => boolean> = [
-  (key) => key.endsWith("_API_KEY"),
-  (key) => key.endsWith("_PASSWORD"),
-  (key) => key.endsWith("_TOKEN"),
-  (key) => key.endsWith("_SECRET"),
-  (key) => key.endsWith("_SECRET_KEY"),
-  (key) => key.endsWith("_ACCESS_KEY"),
-  (key) => key.endsWith("_ACCESS_KEY_ID"),
-  (key) => key.endsWith("_SECRET_ACCESS_KEY"),
-  (key) => key.endsWith("_SESSION_TOKEN"),
-];
+export const SECRET_SUFFIXES = [
+  "_API_KEY",
+  "_PASSWORD",
+  "_TOKEN",
+  "_SECRET",
+  "_SECRET_KEY",
+  "_ACCESS_KEY",
+  "_ACCESS_KEY_ID",
+  "_SECRET_ACCESS_KEY",
+  "_SESSION_TOKEN",
+] as const;
+
+const DELEGATE_ENV_STRIP_PATTERNS: Array<(key: string) => boolean> =
+  SECRET_SUFFIXES.map((suffix) => (key: string) => key.endsWith(suffix));
 
 /**
  * Dangerous env vars stripped from process env before passing to delegates.

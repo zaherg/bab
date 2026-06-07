@@ -1,12 +1,17 @@
 import type { BabConfig } from "../config";
-import { PROVIDER_ENV_CONFIG } from "../providers/registry";
+import {
+  PROVIDER_ENV_CONFIG,
+  providerEnvVarNames,
+} from "../providers/registry";
 import type { ProviderId } from "../types";
+import { SECRET_SUFFIXES } from "../utils/env";
 import { VERSION } from "../version";
 import {
   discoverBundledPluginRecords,
   discoverInstalledPluginRecords,
   formatTable,
   sourceLabel,
+  type CommandPluginRecord,
   type WritableLike,
   writeLine,
 } from "./shared";
@@ -15,18 +20,6 @@ interface ConfigCommandContext {
   config: BabConfig;
   stdout: WritableLike;
 }
-
-const SECRET_SUFFIXES = [
-  "_API_KEY",
-  "_PASSWORD",
-  "_TOKEN",
-  "_SECRET",
-  "_SECRET_KEY",
-  "_ACCESS_KEY",
-  "_ACCESS_KEY_ID",
-  "_SECRET_ACCESS_KEY",
-  "_SESSION_TOKEN",
-];
 
 function maskValue(value: string): string {
   if (value.length <= 6) {
@@ -55,13 +48,27 @@ function renderBabInfo(config: BabConfig, indent = "  "): string {
   return lines.join("\n");
 }
 
-async function renderPlugins(config: BabConfig): Promise<string> {
-  const bundled = await discoverBundledPluginRecords();
-  const installed = await discoverInstalledPluginRecords(config.paths);
+interface DiscoveredPluginSets {
+  bundled: CommandPluginRecord[];
+  installed: CommandPluginRecord[];
+}
 
+async function discoverAllPlugins(
+  config: BabConfig,
+): Promise<DiscoveredPluginSets> {
+  const [bundled, installed] = await Promise.all([
+    discoverBundledPluginRecords().catch((): CommandPluginRecord[] => []),
+    discoverInstalledPluginRecords(config.paths).catch(
+      (): CommandPluginRecord[] => [],
+    ),
+  ]);
+  return { bundled, installed };
+}
+
+function renderPlugins(plugins: DiscoveredPluginSets): string {
   const rows = [
     ["ID", "Name", "Version", "Command", "Source Type", "Source Repo"],
-    ...[...bundled, ...installed]
+    ...[...plugins.bundled, ...plugins.installed]
       .sort((left, right) => left.manifest.id.localeCompare(right.manifest.id))
       .map((plugin) => [
         plugin.manifest.id,
@@ -74,16 +81,6 @@ async function renderPlugins(config: BabConfig): Promise<string> {
   ];
 
   return [sectionHeader("Plugins"), formatTable(rows)].join("\n");
-}
-
-function getProviderEnvKeysForId(pid: ProviderId): string[] {
-  const pc = PROVIDER_ENV_CONFIG[pid];
-  const keys: string[] = [];
-
-  if (pc.apiKey) keys.push(pc.apiKey);
-  if ("baseUrl" in pc && pc.baseUrl) keys.push(pc.baseUrl);
-
-  return keys;
 }
 
 function isProviderConfigured(
@@ -105,7 +102,7 @@ function renderProviders(config: BabConfig, indent = "  "): string {
 
   const rows = providers.map((pid) => {
     const configured = isProviderConfigured(pid, env);
-    const envKeys = getProviderEnvKeysForId(pid);
+    const envKeys = providerEnvVarNames(pid);
 
     return `${indent}${pid.padEnd(12)} ${configured ? "configured" : "not configured"} (${envKeys.join(", ")})`;
   });
@@ -114,14 +111,8 @@ function renderProviders(config: BabConfig, indent = "  "): string {
 }
 
 function getProviderEnvKeys(): Set<string> {
-  const keys = new Set<string>();
-
-  for (const pc of Object.values(PROVIDER_ENV_CONFIG)) {
-    if (pc.apiKey) keys.add(pc.apiKey);
-    if ("baseUrl" in pc && pc.baseUrl) keys.add(pc.baseUrl);
-  }
-
-  return keys;
+  const providers = Object.keys(PROVIDER_ENV_CONFIG) as ProviderId[];
+  return new Set(providers.flatMap((pid) => providerEnvVarNames(pid)));
 }
 
 function isBabRelevant(key: string, providerKeys: Set<string>): boolean {
@@ -149,9 +140,10 @@ function renderEnvironment(config: BabConfig, indent = "  "): string {
 }
 
 async function renderConfigFull(config: BabConfig): Promise<string> {
+  const plugins = await discoverAllPlugins(config);
   const parts = [
     renderBabInfo(config),
-    await renderPlugins(config),
+    renderPlugins(plugins),
     renderProviders(config),
     renderEnvironment(config),
   ];
@@ -160,7 +152,6 @@ async function renderConfigFull(config: BabConfig): Promise<string> {
 }
 
 function pluginsToJSON(
-  _config: BabConfig,
   bundled: Awaited<ReturnType<typeof discoverBundledPluginRecords>>,
   installed: Awaited<ReturnType<typeof discoverInstalledPluginRecords>>,
 ) {
@@ -183,7 +174,7 @@ function providersToJSON(config: BabConfig) {
   return Object.fromEntries(
     providers.map((pid) => {
       const configured = isProviderConfigured(pid, env);
-      const envVars = getProviderEnvKeysForId(pid);
+      const envVars = providerEnvVarNames(pid);
 
       return [pid, { configured, envVars }];
     }),
@@ -209,8 +200,7 @@ function environmentToJSON(config: BabConfig) {
 }
 
 async function renderConfigJSON(config: BabConfig): Promise<string> {
-  const bundled = await discoverBundledPluginRecords();
-  const installed = await discoverInstalledPluginRecords(config.paths);
+  const plugins = await discoverAllPlugins(config);
 
   const output = {
     bab: {
@@ -218,7 +208,7 @@ async function renderConfigJSON(config: BabConfig): Promise<string> {
       persistence: config.persistence?.enabled ?? true,
       configDir: config.paths.baseDir,
     },
-    plugins: pluginsToJSON(config, bundled, installed),
+    plugins: pluginsToJSON(plugins.bundled, plugins.installed),
     providers: providersToJSON(config),
     environment: environmentToJSON(config),
   };
