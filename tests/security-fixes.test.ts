@@ -557,12 +557,36 @@ describe("S16: per-plugin log secret redaction", () => {
 describe("S17: parseEnvFile mismatched quote rejection", () => {
   test("rejects value with leading double quote but no closing quote", () => {
     const { parseEnvFile } = require("../src/config");
-    expect(() => parseEnvFile('KEY="secret')).toThrow("mismatched quotes");
+    let message = "";
+
+    try {
+      parseEnvFile('KEY="secret');
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+
+    expect(message).toContain(
+      "mismatched quotes - check your .env file formatting",
+    );
+    expect(message).not.toContain("—");
+    expect(message).not.toContain("secret");
   });
 
   test("rejects value with leading single quote but no closing quote", () => {
     const { parseEnvFile } = require("../src/config");
-    expect(() => parseEnvFile("KEY='secret")).toThrow("mismatched quotes");
+    let message = "";
+
+    try {
+      parseEnvFile("KEY='secret");
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+
+    expect(message).toContain(
+      "mismatched quotes - check your .env file formatting",
+    );
+    expect(message).not.toContain("—");
+    expect(message).not.toContain("secret");
   });
 
   test("accepts properly double-quoted value", () => {

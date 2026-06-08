@@ -86,4 +86,13 @@ describe("OpenCode plugin parser", () => {
     expect(command.args).toContain("--model");
     expect(command.args).toContain("openai/gpt-5");
   });
+
+  test("bundled adapter does not fall back to process env", async () => {
+    const bundledSource = await Bun.file(
+      new URL("../src/bundled-plugins.gen.ts", import.meta.url),
+    ).text();
+
+    expect(bundledSource).not.toContain("input.env ?? processEnvRecord()");
+    expect(bundledSource).toContain("input.env ?? {}");
+  });
 });

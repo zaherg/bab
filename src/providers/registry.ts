@@ -355,8 +355,7 @@ export class ProviderRegistry {
           },
         },
       };
-    } catch (error) {
-      console.error("[bab] Provider request failed:", error);
+    } catch {
       return {
         ok: false,
         error: {

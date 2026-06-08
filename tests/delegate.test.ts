@@ -253,12 +253,16 @@ describe("plugin-cache race conditions", () => {
     const racePlugin = initial.find((p) => p.manifest.id === "race-plugin");
     expect(racePlugin).toBeDefined();
 
-    // Concurrently invalidate and reload — should never get stale/undefined results
-    invalidatePluginCache();
+    // Concurrently invalidate and reload - should never get stale/undefined results
+    const invalidateAndLoad = async () => {
+      invalidatePluginCache();
+      return getLoadedPlugins(config);
+    };
+
     const results = await Promise.all([
+      invalidateAndLoad(),
       getLoadedPlugins(config),
-      getLoadedPlugins(config),
-      getLoadedPlugins(config),
+      invalidateAndLoad(),
     ]);
     invalidatePluginCache();
 

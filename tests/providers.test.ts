@@ -149,6 +149,40 @@ describe("ProviderRegistry", () => {
     }
   });
 
+  test("does not log raw provider exception details", async () => {
+    const originalConsoleError = console.error;
+    const errors: unknown[][] = [];
+    console.error = (...args: unknown[]) => {
+      errors.push(args);
+    };
+
+    try {
+      const registry = new ProviderRegistry({
+        config: createConfig({
+          OPENAI_API_KEY: "openai-key",
+        }),
+        generateTextFn: async () => {
+          throw new Error("upstream error leaked sk-test-secret-value");
+        },
+      });
+
+      const result = await registry.generateText("gpt-5.2", "hello");
+
+      expect(result.ok).toBeFalse();
+      if (!result.ok) {
+        expect(result.error.message).toBe("Provider request failed");
+      }
+
+      const stderr = errors
+        .flat()
+        .map((arg) => (arg instanceof Error ? arg.message : String(arg)))
+        .join("\n");
+      expect(stderr).not.toContain("sk-test-secret-value");
+    } finally {
+      console.error = originalConsoleError;
+    }
+  });
+
   test("infers google for unknown gemini-* model when configured", async () => {
     const registry = new ProviderRegistry({
       config: createConfig({ GOOGLE_API_KEY: "key" }),
