@@ -2,18 +2,15 @@ name: Lint GitHub Actions workflows
 
 on: [push, pull_request]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
 jobs:
   actionlint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Cache actionlint
         id: cache-actionlint
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ./actionlint
           key: actionlint-${{ runner.os }}
