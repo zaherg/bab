@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.1.13-20260608] - 2026-06-08
+
+### Other
+
+- Strip non-numeric chars in isNewerVersion to handle date-suffixed versions.
+- Harden secret leakage vectors and fix lint errors.
+- Address code review findings.
+- Resolve all biome lint warnings.
+- Bump version 0.1.13-20260608.
+
 ## [0.1.12-20260607] - 2026-06-07
 
 ### Changed
