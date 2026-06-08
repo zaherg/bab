@@ -458,10 +458,6 @@ describe("S15: skills dir TOCTOU — realpath containment check", () => {
     await writeFile(join(outsideDir, "SKILL.md"), "# Evil Skill\n");
     await symlink(outsideDir, skillsDir);
 
-    const { discoverAgents } = await import("../src/skills");
-
-    // discoverAgents is filter-only; symlink check is in regenerateSkills.
-    // We test via the realpath containment logic directly.
     const { realpath: rp } = await import("node:fs/promises");
     const resolvedSkills = await rp(skillsDir);
     const resolvedConfig = await rp(configDir);

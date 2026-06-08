@@ -78,7 +78,7 @@ describe("persistReport", () => {
 
     const files = await readdir(join(root, ".bab", "analyze"));
     const content = await readFile(
-      join(root, ".bab", "analyze", files[0]!),
+      join(root, ".bab", "analyze", files[0] as string),
       "utf8",
     );
     expect(content).toContain("## Analysis\nsome content");
@@ -544,7 +544,7 @@ describe("multi-step workflow report appending", () => {
     expect(files).toHaveLength(1);
 
     const content = await readFile(
-      join(root, ".bab", "analyze", files[0]!),
+      join(root, ".bab", "analyze", files[0] as string),
       "utf8",
     );
     expect(content).toContain("## Step 2:");
@@ -559,7 +559,7 @@ describe("multi-step workflow report appending", () => {
 
     const files = await readdir(join(root, ".bab", "debug"));
     const content = await readFile(
-      join(root, ".bab", "debug", files[0]!),
+      join(root, ".bab", "debug", files[0] as string),
       "utf8",
     );
     expect(content).not.toContain("## Step 1:");
@@ -581,7 +581,7 @@ describe("multi-step workflow report appending", () => {
     expect(files).toHaveLength(1);
 
     const content = await readFile(
-      join(root, ".bab", "analyze", files[0]!),
+      join(root, ".bab", "analyze", files[0] as string),
       "utf8",
     );
     expect(content).toContain("## Step 2:");
@@ -608,7 +608,7 @@ describe("multi-step workflow report appending", () => {
     expect(files).toHaveLength(1);
 
     const content = await readFile(
-      join(root, ".bab", "analyze", files[0]!),
+      join(root, ".bab", "analyze", files[0] as string),
       "utf8",
     );
     expect(content).toContain("## Step 2:");

@@ -6,6 +6,7 @@ import type { BabConfig } from "../src/config";
 import { discoverPluginDirectories } from "../src/delegate/discovery";
 import { loadPlugin } from "../src/delegate/loader";
 import { invalidatePluginCache } from "../src/delegate/plugin-cache";
+import type { DiscoveredPlugin } from "../src/delegate/types";
 import { ModelGateway } from "../src/providers/model-gateway";
 import { ProviderRegistry } from "../src/providers/registry";
 import { PluginManifestSchema } from "../src/types";
@@ -115,7 +116,7 @@ describe("tool_prompts loader caching", () => {
     );
 
     const discovered = await discoverPluginDirectories(pluginsRoot);
-    const loaded = await loadPlugin(discovered[0]!);
+    const loaded = await loadPlugin(discovered[0] as DiscoveredPlugin);
 
     expect(loaded.resolvedToolPrompts).toBeDefined();
     expect(loaded.resolvedToolPrompts?.codereview).toBe(
@@ -144,7 +145,7 @@ describe("tool_prompts loader caching", () => {
     );
 
     const discovered = await discoverPluginDirectories(pluginsRoot);
-    const loaded = await loadPlugin(discovered[0]!);
+    const loaded = await loadPlugin(discovered[0] as DiscoveredPlugin);
 
     expect(loaded.resolvedToolPrompts).toBeUndefined();
   });
@@ -174,7 +175,7 @@ describe("tool_prompts loader caching", () => {
     );
 
     const discovered = await discoverPluginDirectories(pluginsRoot);
-    const loaded = await loadPlugin(discovered[0]!);
+    const loaded = await loadPlugin(discovered[0] as DiscoveredPlugin);
 
     expect(loaded.resolvedToolPrompts).toBeDefined();
     expect(loaded.resolvedToolPrompts?.codereview).toBe("Good prompt content.");
@@ -204,7 +205,7 @@ describe("tool_prompts loader caching", () => {
     );
 
     const discovered = await discoverPluginDirectories(pluginsRoot);
-    const loaded = await loadPlugin(discovered[0]!);
+    const loaded = await loadPlugin(discovered[0] as DiscoveredPlugin);
 
     // Unknown tool name is skipped, so no prompts are resolved
     expect(loaded.resolvedToolPrompts).toBeUndefined();
@@ -232,7 +233,7 @@ describe("tool_prompts loader caching", () => {
     );
 
     const discovered = await discoverPluginDirectories(pluginsRoot);
-    const loaded = await loadPlugin(discovered[0]!);
+    const loaded = await loadPlugin(discovered[0] as DiscoveredPlugin);
 
     // Path escape is caught; plugin still loads
     expect(loaded.resolvedToolPrompts).toBeUndefined();
@@ -268,7 +269,7 @@ describe("tool_prompts loader caching", () => {
     );
 
     const discovered = await discoverPluginDirectories(pluginsRoot);
-    const loaded = await loadPlugin(discovered[0]!);
+    const loaded = await loadPlugin(discovered[0] as DiscoveredPlugin);
 
     // Bad prompt entry is skipped; plugin still loads
     expect(loaded.resolvedToolPrompts).toBeUndefined();
