@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.1.14-20260608] - 2026-06-08
+
+### Other
+
+- Upgrade all GitHub Actions to latest versions.
+- Bump version 0.1.14-20260608.
+
 ## [0.1.13-20260608] - 2026-06-08
 
 ### Other
