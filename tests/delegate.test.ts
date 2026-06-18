@@ -92,7 +92,7 @@ describe("delegate discovery and loading", () => {
     expect(loadedPlugins).toHaveLength(0);
   });
 
-  test("loadPlugin throws with actionable message for missing CLI", async () => {
+  test("loadPlugin returns null when CLI command is not on PATH", async () => {
     const pluginDirectory = await mkdtemp(join(tmpdir(), "bab-throw-cli-"));
 
     await writeFile(
@@ -107,15 +107,13 @@ describe("delegate discovery and loading", () => {
       ].join("\n"),
     );
 
-    await expect(
-      loadPlugin({
-        adapterPath: undefined,
-        directory: pluginDirectory,
-        manifestPath: join(pluginDirectory, "manifest.yaml"),
-      }),
-    ).rejects.toThrow(
-      'Plugin "Ghost Plugin" requires CLI command "ghost-cli-not-installed" which was not found on PATH',
-    );
+    const result = await loadPlugin({
+      adapterPath: undefined,
+      directory: pluginDirectory,
+      manifestPath: join(pluginDirectory, "manifest.yaml"),
+    });
+
+    expect(result).toBeNull();
   });
 
   test("loadPlugin succeeds when CLI command exists on PATH", async () => {
@@ -139,8 +137,9 @@ describe("delegate discovery and loading", () => {
       manifestPath: join(pluginDirectory, "manifest.yaml"),
     });
 
-    expect(loaded.manifest.id).toBe("valid-cli");
-    expect(loaded.manifest.command).toBe("echo");
+    expect(loaded).not.toBeNull();
+    expect(loaded?.manifest.id).toBe("valid-cli");
+    expect(loaded?.manifest.command).toBe("echo");
   });
 });
 

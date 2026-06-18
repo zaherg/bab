@@ -345,3 +345,7 @@ export function sourceLabel(plugin: CommandPluginRecord): string {
 
   return plugin.installMetadata?.source_original ?? "installed";
 }
+
+export function isPluginCommandAvailable(command: string): boolean {
+  return Bun.which(command) !== null;
+}

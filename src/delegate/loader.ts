@@ -4,7 +4,10 @@ import { pathToFileURL } from "node:url";
 import YAML from "yaml";
 import { z } from "zod/v4";
 
-import { readInstallMetadata } from "../commands/shared";
+import {
+  isPluginCommandAvailable,
+  readInstallMetadata,
+} from "../commands/shared";
 import { OVERRIDABLE_TOOL_NAMES } from "../tools/overridable-tools";
 import type { PluginManifest } from "../types";
 import { PluginManifestSchema } from "../types";
@@ -145,7 +148,7 @@ async function resolveToolPrompts(
 
 export async function loadPlugin(
   discoveredPlugin: DiscoveredPlugin,
-): Promise<LoadedPlugin & { env: Record<string, string> }> {
+): Promise<(LoadedPlugin & { env: Record<string, string> }) | null> {
   const resolvedManifestPath = await assertPathContainment(
     discoveredPlugin.manifestPath,
     discoveredPlugin.directory,
@@ -169,10 +172,12 @@ export async function loadPlugin(
   );
   const env = await readPluginEnv(discoveredPlugin.directory);
 
-  if (!Bun.which(manifest.command)) {
-    throw new Error(
-      `Plugin "${manifest.name}" requires CLI command "${manifest.command}" which was not found on PATH. Please install it before using this plugin.`,
+  if (!isPluginCommandAvailable(manifest.command)) {
+    logger.warn(
+      `Plugin "${manifest.name}" disabled: CLI command "${manifest.command}" not found on PATH. Re-checked on next startup.`,
+      { manifest_path: discoveredPlugin.manifestPath },
     );
+    return null;
   }
 
   const adapter = discoveredPlugin.adapterPath
@@ -215,7 +220,9 @@ export async function loadPlugins(
     const result = results[i];
 
     if (result.status === "fulfilled") {
-      loadedPlugins.push(result.value);
+      if (result.value !== null) {
+        loadedPlugins.push(result.value);
+      }
     } else {
       const message =
         result.reason instanceof Error

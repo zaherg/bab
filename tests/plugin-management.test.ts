@@ -529,6 +529,50 @@ describe("command wrappers", () => {
     expect(stdout.join("")).toContain("git@github.com:babmcp/plugins.git");
   });
 
+  test("runListCommand marks plugins as disabled when CLI command is missing on PATH", async () => {
+    const pluginsDir = await mkdtemp(
+      join(tmpdir(), "bab-command-list-disabled-"),
+    );
+    const missingCliPluginDir = join(pluginsDir, "ghost");
+    const echoPluginDir = join(pluginsDir, "real");
+    const stdout: string[] = [];
+
+    await writePlugin(echoPluginDir, "real");
+    await mkdir(missingCliPluginDir, { recursive: true });
+    await writeFile(
+      join(missingCliPluginDir, "manifest.yaml"),
+      [
+        "id: ghost",
+        "name: ghost plugin",
+        "version: 1.0.0",
+        "command: __definitely-not-on-path-xyz__",
+        "roles:",
+        "  - default",
+      ].join("\n"),
+    );
+    await writeFile(
+      join(missingCliPluginDir, "adapter.ts"),
+      "export default {};\n",
+    );
+    await mkdir(join(missingCliPluginDir, "prompts"), { recursive: true });
+    await writeFile(
+      join(missingCliPluginDir, "prompts", "default.txt"),
+      "ghost prompt\n",
+    );
+
+    const exitCode = await runListCommand([], {
+      config: createConfig(pluginsDir),
+      stdout: createCaptureStream(stdout),
+    });
+
+    const output = stdout.join("");
+    expect(exitCode).toBe(0);
+    expect(output).toContain("disabled");
+    expect(output).toContain("__definitely-not-on-path-xyz__");
+    expect(output).toContain("not found on PATH");
+    expect(output).toContain("active");
+  });
+
   test("getBundledPluginsRoot resolves from a compiled-binary layout", async () => {
     const bundledRoot = await getBundledPluginsRoot([
       join(process.cwd(), "dist"),

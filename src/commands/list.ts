@@ -4,6 +4,7 @@ import {
   discoverBundledPluginRecords,
   discoverInstalledPluginRecords,
   formatTable,
+  isPluginCommandAvailable,
   sourceLabel,
   type WritableLike,
   writeLine,
@@ -25,17 +26,33 @@ export async function runListCommand(
   const bundled = await discoverBundledPluginRecords();
   const installed = await discoverInstalledPluginRecords(context.config.paths);
   const rows = [
-    ["ID", "Name", "Version", "Command", "Source Type", "Source Repo"],
+    [
+      "ID",
+      "Name",
+      "Version",
+      "Command",
+      "Source Type",
+      "Source Repo",
+      "Status",
+      "Note",
+    ],
     ...[...bundled, ...installed]
       .sort((left, right) => left.manifest.id.localeCompare(right.manifest.id))
-      .map((plugin) => [
-        plugin.manifest.id,
-        plugin.manifest.name,
-        plugin.manifest.version,
-        plugin.manifest.command,
-        plugin.sourceType,
-        sourceLabel(plugin),
-      ]),
+      .map((plugin) => {
+        const active = isPluginCommandAvailable(plugin.manifest.command);
+        return [
+          plugin.manifest.id,
+          plugin.manifest.name,
+          plugin.manifest.version,
+          plugin.manifest.command,
+          plugin.sourceType,
+          sourceLabel(plugin),
+          active ? "active" : "disabled",
+          active
+            ? ""
+            : `CLI "${plugin.manifest.command}" not found on PATH (re-checked next startup)`,
+        ];
+      }),
   ];
 
   writeLine(context.stdout, formatTable(rows));
