@@ -234,6 +234,7 @@ All `BAB_*` variables are validated through a Zod schema on startup. Invalid val
 | `BAB_PERSIST_TOOLS` | comma-separated | Only persist reports for these tools |
 | `BAB_DISABLED_PERSIST_TOOLS` | comma-separated | Disable persistence for these tools |
 | `BAB_CLI_TIMEOUT_MS` | integer | Override delegate CLI timeout (default: 5 minutes) |
+| `BAB_PROVIDER_TIMEOUT_MS` | integer | Override provider API timeout for model calls and discovery (default: 60 seconds) |
 | `BAB_MAX_CONCURRENT_PROCESSES` | integer | Max concurrent delegate processes (default: 5) |
 | `BAB_LOG_LEVEL` | string | Logging level: `debug`, `info`, `warn`, `error` (default: `info`). `debug` can include stack traces in MCP tool error responses; do not enable it with untrusted MCP clients. |
 

@@ -149,6 +149,78 @@ describe("ProviderRegistry", () => {
     }
   });
 
+  test("adds a provider timeout abort signal to SDK calls", async () => {
+    const calls: Array<Record<string, unknown>> = [];
+    const registry = new ProviderRegistry({
+      config: createConfig({
+        BAB_PROVIDER_TIMEOUT_MS: "1234",
+        OPENAI_API_KEY: "openai-key",
+      }),
+      generateTextFn: async (args) => {
+        calls.push(args as Record<string, unknown>);
+
+        return {
+          response: {
+            modelId: "gpt-5.2",
+            timestamp: new Date("2026-03-10T12:00:00.000Z"),
+          },
+          text: "hello back",
+          usage: {
+            inputTokens: 12,
+            outputTokens: 4,
+            totalTokens: 16,
+          },
+        } as never;
+      },
+    });
+
+    const result = await registry.generateText("gpt-5.2", "hello");
+
+    expect(result.ok).toBeTrue();
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.abortSignal).toBeInstanceOf(AbortSignal);
+  });
+
+  test("returns a timeout error when the provider request is aborted", async () => {
+    const registry = new ProviderRegistry({
+      config: createConfig({
+        OPENAI_API_KEY: "openai-key",
+      }),
+      generateTextFn: async () => {
+        throw new DOMException("The operation was aborted.", "AbortError");
+      },
+    });
+
+    const result = await registry.generateText("gpt-5.2", "hello");
+
+    expect(result.ok).toBeFalse();
+    if (!result.ok) {
+      expect(result.error.type).toBe("timeout");
+      expect(result.error.message).toBe("Provider request timed out");
+      expect(result.error.retryable).toBeTrue();
+    }
+  });
+
+  test("returns a timeout error when the provider request reaches its deadline", async () => {
+    const registry = new ProviderRegistry({
+      config: createConfig({
+        OPENAI_API_KEY: "openai-key",
+      }),
+      generateTextFn: async () => {
+        throw new DOMException("The operation timed out.", "TimeoutError");
+      },
+    });
+
+    const result = await registry.generateText("gpt-5.2", "hello");
+
+    expect(result.ok).toBeFalse();
+    if (!result.ok) {
+      expect(result.error.type).toBe("timeout");
+      expect(result.error.message).toBe("Provider request timed out");
+      expect(result.error.retryable).toBeTrue();
+    }
+  });
+
   test("does not log raw provider exception details", async () => {
     const originalConsoleError = console.error;
     const errors: unknown[][] = [];

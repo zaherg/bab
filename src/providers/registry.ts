@@ -13,7 +13,11 @@ import type { BabConfig } from "../config";
 import type { ModelInfo, ProviderId, Result, ToolError } from "../types";
 import { estimateTokenCount } from "../utils/tokens";
 import { customProviderBaseUrl } from "./custom-url";
-import { discoverModels, getAllCachedModels } from "./model-discovery";
+import {
+  DEFAULT_PROVIDER_TIMEOUT_MS,
+  discoverModels,
+  getAllCachedModels,
+} from "./model-discovery";
 
 type GenerateTextFn = typeof aiGenerateText;
 
@@ -40,6 +44,31 @@ export interface GenerateTextResult {
     output_tokens: number;
     total_tokens: number;
   };
+}
+
+function providerTimeoutMs(env: Record<string, string>): number {
+  const raw = Number(env.BAB_PROVIDER_TIMEOUT_MS);
+  return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_PROVIDER_TIMEOUT_MS;
+}
+
+function timeoutSignal(timeoutMs: number, parent?: AbortSignal): AbortSignal {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  if (!parent) return timeout;
+  if (parent.aborted) return parent;
+  return AbortSignal.any([parent, timeout]);
+}
+
+function isAbortError(error: unknown): boolean {
+  if (
+    !(error instanceof DOMException) &&
+    !(error instanceof Error) &&
+    (typeof error !== "object" || error === null)
+  ) {
+    return false;
+  }
+
+  const name = (error as { name?: unknown }).name;
+  return name === "AbortError" || name === "TimeoutError";
 }
 
 interface LanguageModelProvider {
@@ -273,6 +302,7 @@ export class ProviderRegistry {
         : undefined;
     return discoverModels(pid, apiKey, baseUrl, {
       allowInsecureCustomUrl: this.config.env.BAB_ALLOW_INSECURE_CUSTOM === "1",
+      timeoutMs: providerTimeoutMs(this.config.env),
     });
   }
 
@@ -320,7 +350,10 @@ export class ProviderRegistry {
         options.thinkingMode,
       );
       const result = await this.generateTextFn({
-        abortSignal: options.abortSignal,
+        abortSignal: timeoutSignal(
+          providerTimeoutMs(this.config.env),
+          options.abortSignal,
+        ),
         maxOutputTokens: options.maxOutputTokens,
         model,
         prompt,
@@ -355,7 +388,18 @@ export class ProviderRegistry {
           },
         },
       };
-    } catch {
+    } catch (error) {
+      if (isAbortError(error)) {
+        return {
+          ok: false,
+          error: {
+            type: "timeout",
+            message: "Provider request timed out",
+            retryable: true,
+          },
+        };
+      }
+
       return {
         ok: false,
         error: {

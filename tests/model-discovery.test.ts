@@ -118,6 +118,26 @@ describe("discoverModels", () => {
     expect(models).toHaveLength(0);
   });
 
+  test("passes a timeout abort signal to provider model discovery fetches", async () => {
+    const calls: Array<RequestInit | undefined> = [];
+    globalThis.fetch = mock((_: string | URL | Request, init?: RequestInit) => {
+      calls.push(init);
+      return Promise.resolve(
+        new Response(JSON.stringify({ data: [{ id: "gpt-4o" }] }), {
+          status: 200,
+        }),
+      );
+    }) as unknown as typeof fetch;
+
+    const models = await discoverModels("openai", "test-key", undefined, {
+      timeoutMs: 1234,
+    });
+
+    expect(models).toHaveLength(1);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.signal).toBeInstanceOf(AbortSignal);
+  });
+
   test("returns empty array on non-200 response", async () => {
     globalThis.fetch = mockFetch({ error: "Unauthorized" }, 401);
 

@@ -61,6 +61,7 @@ export const BabEnvSchema = z
     BAB_DISABLED_TOOLS: CommaSeparatedList.optional(),
     BAB_ENABLED_TOOLS: CommaSeparatedList.optional(),
     BAB_CLI_TIMEOUT_MS: PositiveInt.optional(),
+    BAB_PROVIDER_TIMEOUT_MS: PositiveInt.optional(),
     BAB_LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).optional(),
     BAB_MAX_CONCURRENT_PROCESSES: PositiveInt.optional(),
   })

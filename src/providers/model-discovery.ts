@@ -3,6 +3,7 @@ import { logger } from "../utils/logger";
 import { validateCustomApiUrl } from "./custom-url";
 
 const CACHE_TTL_MS = 48 * 60 * 60 * 1000; // 48 hours
+export const DEFAULT_PROVIDER_TIMEOUT_MS = 60_000;
 
 const PROVIDER_API_ENDPOINTS: Partial<Record<ProviderId, string>> = {
   anthropic: "https://api.anthropic.com/v1/models",
@@ -25,6 +26,7 @@ interface CacheEntry {
 
 interface DiscoverModelsOptions {
   allowInsecureCustomUrl?: boolean;
+  timeoutMs?: number;
 }
 
 const cache = new Map<ProviderId, CacheEntry>();
@@ -153,7 +155,12 @@ async function fetchFromProvider(
     headers["anthropic-version"] = "2023-06-01";
   }
 
-  const response = await fetch(url, { headers });
+  const response = await fetch(url, {
+    headers,
+    signal: AbortSignal.timeout(
+      options.timeoutMs ?? DEFAULT_PROVIDER_TIMEOUT_MS,
+    ),
+  });
 
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
