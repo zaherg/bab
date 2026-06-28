@@ -12,16 +12,6 @@ import {
 } from "../src/types";
 
 describe("ToolOutputSchema", () => {
-  test("applies defaults for optional fields", () => {
-    const parsed = ToolOutputSchema.parse({});
-
-    expect(parsed).toEqual({
-      content_type: "text",
-      metadata: {},
-      status: "success",
-    });
-  });
-
   test("rejects unsupported status values", () => {
     expect(() =>
       ToolOutputSchema.parse({

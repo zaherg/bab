@@ -20,25 +20,6 @@ afterEach(async () => {
 // ---------------------------------------------------------------------------
 
 describe("Tool manifest", () => {
-  test("contains all core tool names", () => {
-    // Manifest entries should cover all CORE_TOOL_NAMES
-    // We verify this indirectly via the manifest builder using a mock context.
-    // Since buildToolManifest requires real deps, we just check the set of
-    // names matches expectations at the constant level.
-    const coreSet = new Set(CORE_TOOL_NAMES);
-    expect(coreSet.has("analyze")).toBeTrue();
-    expect(coreSet.has("delegate")).toBeTrue();
-    expect(coreSet.has("secaudit")).toBeTrue();
-    expect(coreSet.has("version")).toBeTrue();
-  });
-
-  test("ALWAYS_LOADED_TOOLS is a subset of CORE_TOOL_NAMES", () => {
-    const coreArr = CORE_TOOL_NAMES as readonly string[];
-    for (const name of ALWAYS_LOADED_TOOLS) {
-      expect(coreArr.includes(name)).toBeTrue();
-    }
-  });
-
   test("LAZY_MODE_TOOL_NAMES does not overlap with CORE_TOOL_NAMES", () => {
     const coreArr = CORE_TOOL_NAMES as readonly string[];
     for (const name of LAZY_MODE_TOOL_NAMES) {

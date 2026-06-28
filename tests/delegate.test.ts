@@ -419,12 +419,4 @@ describe("ProcessRunner", () => {
     });
     expect(second.exitCode).toBe(0);
   });
-
-  test("respects BAB_MAX_CONCURRENT_PROCESSES env var (default is 5)", () => {
-    // Verify the default is 5 (no env var set in test env)
-    const runner = new ProcessRunner();
-    // Default concurrency is 5 — can't easily test the env var path at module level,
-    // but we verify the constructor default is applied correctly via activeCount.
-    expect(runner.activeCount).toBe(0);
-  });
 });

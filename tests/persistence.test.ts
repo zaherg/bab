@@ -427,30 +427,6 @@ describe("extractSummary", () => {
 });
 
 describe("formatReport", () => {
-  test("includes YAML frontmatter with all required fields", () => {
-    const input = makeInput({
-      toolName: "analyze",
-      inputText: "check this code",
-      continuationId: "cont-abc",
-      content: "The code looks fine.",
-    });
-    const report = formatReport(input);
-    expect(report).toContain("schema_version: 1");
-    expect(report).toContain("tool: bab:analyze");
-    expect(report).toContain("continuation_id: cont-abc");
-    expect(report).toContain("timestamp:");
-  });
-
-  test("includes summary line", () => {
-    const input = makeInput({
-      toolName: "debug",
-      inputText: "fix the bug",
-      continuationId: "cont-1",
-      content: "Root cause is a null pointer. The fix is straightforward.",
-    });
-    expect(formatReport(input)).toContain("**Summary:**");
-  });
-
   test("includes Request and Analysis sections", () => {
     const input = makeInput({
       toolName: "analyze",

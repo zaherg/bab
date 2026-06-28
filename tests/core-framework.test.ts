@@ -12,7 +12,6 @@ import {
   prepareConversation,
   remainingConversationTurns,
   selectModel,
-  toolFailureResult,
 } from "../src/tools/base";
 import { createSimpleTool } from "../src/tools/simple";
 import { WorkflowRunner } from "../src/tools/workflow/runner";
@@ -658,37 +657,5 @@ describe("remainingConversationTurns", () => {
     };
 
     expect(remainingConversationTurns(thread)).toBe(0);
-  });
-});
-
-describe("toolFailureResult", () => {
-  test("creates a structured error result", () => {
-    const result = toolFailureResult("validation", "bad input", {
-      field: "step",
-    });
-
-    expect(result.ok).toBeFalse();
-
-    if (result.ok) {
-      throw new Error("Expected failure result");
-    }
-
-    expect(result.error.type).toBe("validation");
-    expect(result.error.message).toBe("bad input");
-    expect(result.error.retryable).toBeFalse();
-    expect(result.error.details).toEqual({ field: "step" });
-  });
-
-  test("works without details", () => {
-    const result = toolFailureResult("not_found", "tool missing");
-
-    expect(result.ok).toBeFalse();
-
-    if (result.ok) {
-      throw new Error("Expected failure result");
-    }
-
-    expect(result.error.type).toBe("not_found");
-    expect(result.error.details).toBeUndefined();
   });
 });

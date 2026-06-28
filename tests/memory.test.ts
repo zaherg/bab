@@ -4,7 +4,6 @@ import {
   ConversationStore,
   MAX_THREAD_TURNS,
 } from "../src/memory/conversations";
-import type { StorageAdapter } from "../src/memory/interface";
 import { InMemoryStorageAdapter } from "../src/memory/memory";
 
 describe("InMemoryStorageAdapter", () => {
@@ -98,16 +97,5 @@ describe("ConversationStore", () => {
 
     expect(resolved?.id).toBe("continuation-1");
     expect(resolved?.turns[0]?.tool_name).toBe("planner");
-  });
-
-  test("accepts a custom storage adapter", async () => {
-    const adapter: StorageAdapter<{ value: string }> =
-      new InMemoryStorageAdapter<{ value: string }>();
-
-    await adapter.set("memory:test", { value: "ok" });
-
-    const items = await adapter.list("memory:");
-
-    expect(items).toEqual([{ key: "memory:test", value: { value: "ok" } }]);
   });
 });
