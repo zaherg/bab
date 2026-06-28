@@ -1,3 +1,6 @@
+> [!important]
+> This project has been sunset, as most of the tools can be implemented as skill files that you can add to your agent. I'll be focusing on that instead. The new code will be located at [@zaherg/skills](https://github.com/zaherg/skills).
+
 # Bab
 
 [Bab Showcase](https://github.com/user-attachments/assets/c00243eb-d0a0-4db5-87d5-bc1d84ff244d)
